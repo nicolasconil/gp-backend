@@ -69,6 +69,12 @@ const UserSchema = new mongoose.Schema({
             match: [/^[1-9]\d{6,14}$/, 'Número de teléfono inválido']
         }
     },
+    productPreferences: [
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Product'
+        }
+    ],
     orders: [
         {
             type: mongoose.Schema.Types.ObjectId,
