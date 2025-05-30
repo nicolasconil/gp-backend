@@ -15,4 +15,9 @@ const logger = winston.createLogger({
     ],
 });
 
+export const logAudit = (action, userId, success) => {
+    const timestamp = new Date().toISOString();
+    logger.info(`[AUDIT] ${timestamp} - Acción: ${action}. Usuario: ${userId || 'N/A'}. Exitoso: ${success}`);  
+};
+
 export default logger;

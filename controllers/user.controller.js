@@ -135,4 +135,15 @@ export const updateConsent = async (req, res) => {
     }
 };
 
-
+export const login = async (req, res) => {
+    try {
+        const { email, password } = req.body;
+        const lowerEmail = email?.toLowerCase();
+        const { token, userId, role } = await AuthService.authenticateUser(lowerEmail, password);
+        logger.info(`/POST /login - Usuario ${userId} autenticado correctamente.`);
+        res.status(200).json({ token, userId, role });
+    } catch (error) {
+        logger.error(`/POST /login - ${error.message}`);
+        res.status(401).json({ message: error.message });
+    }
+};

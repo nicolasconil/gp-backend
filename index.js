@@ -1,6 +1,9 @@
 import mongoose from "mongoose";
 import express from "express";
 import cors from "cors";
+import cookieParser from "cookie-parser";
+
+import userRoutes from "./routes/user.routes.js";
 
 const app = express();
 
@@ -10,8 +13,11 @@ const mongodb = "mongodb://127.0.0.1:27017/backend-gp";
 
 app.use(cors());
 app.use(express.json());
+app.use(cookieParser());
 
-app.get("/", (req, res) => {
+app.use('/api/users')
+
+app.get('/', (req, res) => {
     res.send("Backend GP Footwear funcionando.");
 });
 

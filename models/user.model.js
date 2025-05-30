@@ -7,11 +7,19 @@ const UserSchema = new mongoose.Schema({
         type: Boolean,
         default: false
     },
-    fullName: {
-        type: String,
-        trim: true,
-        minlength: 3,
-        required: false
+    name: {
+        first: {
+            type: String,
+            trim: true,
+            minlength: 2,
+            required: false
+        },
+        last: {
+            type: String,
+            trim: true,
+            minlength: 2,
+            required: false
+        }
     },
     email: {
         type: String,
@@ -36,7 +44,7 @@ const UserSchema = new mongoose.Schema({
     },
     role: {
         type: String,
-        enum: ['cliente', 'admin'],
+        enum: ['cliente', 'administrador', 'moderador'],
         default: 'cliente'
     },
     address: {
@@ -101,13 +109,13 @@ const UserSchema = new mongoose.Schema({
 
 // pre-validación antes de guardar
 UserSchema.pre('validate', function (next) {
-    if(!this.isGuest) {
+    if (!this.isGuest) {
         if (!this.email) return next(new Error('El email es requerido para usuarios registrados.'));
         if (!this.password) return next(new Error('La contraseña es requerida para usuarios registrados.'));
         if (!this.termsAccepted) return next(new Error('Debes acordar los términos y condiciones.'));
     } else {
-        const hasPersonalData = 
-            this.fullName || this.email || this.phone?.number || this.address?.street;
+        const hasPersonalData =
+            this.name?.first || this.name?.last || this.email || this.phone?.number || this.address?.street;
         if (hasPersonalData && !this.termsAccepted) {
             return next(new Error('Debes aceptar la política de privacidad para continuar como invitado.'));
         }
