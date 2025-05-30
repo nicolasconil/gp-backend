@@ -2,13 +2,13 @@ import express from "express";
 import * as UserController from "../controllers/user.controller.js";
 import * as AuthMiddleware from "../middleware/auth.middleware.js";
 import { registerUserValidation, updateUserValidation } from "../middleware/validations/user.validation.js";
-import { addCsrfToken, csrfProtection } from "../middleware/csrf.middleware.js";
+import { csrfMiddleware } from "../middleware/csrf.middleware.js";
 
 const router = express.Router();
 
 // rutas públicas
-router.post('/signup', registerUserValidation, csrfProtection, UserController.createUser);
-router.post('/login', csrfProtection, UserController.login);
+router.post('/signup', registerUserValidation, csrfMiddleware, UserController.createUser);
+router.post('/login', csrfMiddleware, UserController.login);
 router.post('/refresh-token', (req, res) => {
     const refreshToken = req.cookies.refreshToken || req.body.refreshToken;
     if (!refreshToken) {
@@ -27,24 +27,23 @@ router.post('/refresh-token', (req, res) => {
 router.use(AuthMiddleware.verifyToken); // verifica el token para todas las siguientes rutas
 
 // rutas de usuario
-router.get('/me', addCsrfToken, UserController.getUserById);
-router.put('/me', updateUserValidation, csrfProtection, UserController.updateUser);
-router.delete('/me', csrfProtection, UserController.deleteAccount);
-router.get('/me/orders', addCsrfToken, UserController.getUserWithOrders);
-router.get('/me/exports', addCsrfToken, UserController.exportUserData);
+router.get('/me', csrfMiddleware, UserController.getUserById);
+router.put('/me', updateUserValidation, csrfMiddleware, UserController.updateUser);
+router.delete('/me', csrfMiddleware, UserController.deleteAccount);
+router.get('/me/orders', csrfMiddleware, UserController.getUserWithOrders);
+router.get('/me/exports', csrfMiddleware, UserController.exportUserData);
 
 // rutas del moderador y administrador
 router.use(AuthMiddleware.verifyModerator);
 
 // administración de usuarios
-router.get('/users', UserController.getAllUsers);
-router.put('/users/:id', updateUserValidation, csrfProtection, UserController.updateUser);
+router.get('/', UserController.getAllUsers);
+router.put('/:id', updateUserValidation, csrfMiddleware, UserController.updateUser);
 
 // rutas del administrador
 router.use(AuthMiddleware.verifyAdmin);
 
 // administración de usuarios
-router.delete('/users/:id', csrfProtection, UserController.deleteUser);
-
+router.delete('/:id', csrfMiddleware, UserController.deleteUser);
 
 export default router;

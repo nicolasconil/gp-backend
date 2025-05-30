@@ -4,6 +4,8 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 
 import userRoutes from "./routes/user.routes.js";
+import productRoutes from "./routes/product.routes.js";
+import csrfRoutes from "./routes/csrf.routes.js";
 
 const app = express();
 
@@ -15,7 +17,9 @@ app.use(cors());
 app.use(express.json());
 app.use(cookieParser());
 
-app.use('/api/users')
+app.use('/users', userRoutes);
+app.use('/products', productRoutes);
+app.use('/', csrfRoutes);
 
 app.get('/', (req, res) => {
     res.send("Backend GP Footwear funcionando.");
