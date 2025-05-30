@@ -3,3 +3,9 @@
 
 # environment variables
 .env
+
+# ignore uploads and invoices folders, but keep the .gitkeep files
+/uploads/*
+!/uploads/.gitkeep
+/invoices/*
+!/invoices/.gitkeep
