@@ -3,6 +3,7 @@ import bcrypt from "bcrypt";
 import crypto from "crypto";
 import { encryptText } from "../utils/encryption.js";
 import { generateToken } from "../middleware/auth.middleware.js";
+import { sendVerificationEmail, sendPasswordResetEmail } from "../middleware/email.middleware.js";
 
 
 export const authenticateUser = async (email, password) => {
@@ -39,7 +40,7 @@ export const registerUser = async ({
     const [firstName, lastName] = name.split(' ');
     const encryptedFirstName = encryptText(firstName);
     const encryptedLastName = encryptText(lastName);
-    const encryptedAddres = Object.fromEntries(
+    const encryptedAddress = Object.fromEntries(
         Object.entries(address).map(([k, v]) => [k, encryptText(v)])
     );
     const encryptedPhone = {
@@ -56,13 +57,15 @@ export const registerUser = async ({
             last: encryptedLastName
         },
         role,
-        address: encryptedAddres,
+        address: encryptedAddress,
         phone: encryptedPhone,
         isEmailVerified: false,
         verificationToken,
         termsAccepted: true,
         termsAcceptedAt: new Date()
     });
+    const verificationUrl = `${process.env.FRONTEND_URL}/verify-email?token=${verificationToken}`;
+    await sendVerificationEmail(email, firstName, verificationUrl);
     return newUser;
 };
 
@@ -87,7 +90,7 @@ export const resetUserPassword = async (token, newPassword) => {
 export const createGuestUser = async ({ address = {}, phone = {} }) => {
     const randomPassword = crypto.randomBytes(16).toString('hex');
     const hashedPassword = await bcrypt.hash(randomPassword, 10);
-    const encryptedAddres = Object.fromEntries(
+    const encryptedAddress = Object.fromEntries(
         Object.entries(address).map(([k, v]) => [k, encryptText(v)])
     );
     const encryptedPhone = {
@@ -96,9 +99,31 @@ export const createGuestUser = async ({ address = {}, phone = {} }) => {
     }; 
     const newGuest = await UserRepository.createUser({
         isGuest: true, 
+        isEmailVerified: false,
         password: hashedPassword,
-        address: encryptedAddres,
+        address: encryptedAddress,
         phone: encryptedPhone
     });
     return newGuest;
-}
+};
+
+export const requestPasswordReset = async (email) => { // solicita el restablecimiento de la contraseña
+    const emailHash = crypto.createHash('sha256').update(email).digest('hex');
+    const user = await UserRepository.getUserByEmailHash(emailHash);
+    if (!user) throw new Error('Usuario no encontrado.');
+    const resetPasswordToken = crypto.randomBytes(32).toString('hex');
+    const resetPasswordExpires = Date.now() + 3600000;
+    user.resetPasswordToken = resetPasswordToken;
+    user.resetPasswordExpires = resetPasswordExpires;
+    await user.save();
+    const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${resetPasswordToken}`;
+    await sendPasswordResetEmail(email, user.name.first, resetUrl)
+};
+
+export const validateResetPasswordToken = async (token) => {
+    const user = await UserRepository.findByResetToken(token);
+    if (!user || user.resetPasswordExpires < Date.now()) {
+        throw new Error('Token inválido o expirado.');
+    }
+    return user;
+};
