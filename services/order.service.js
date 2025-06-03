@@ -55,7 +55,7 @@ export const updateFields = async (id, fields) => {
             const email = updatedOrder.user?.email ? decryptText(updatedOrder.user.email) : updatedOrder.guestEmail;
             const name = updatedOrder.user?.name ? decryptText(updatedOrder.user.name) : 'Cliente';
             if (email) {
-                await sendShippingNotificationEmail(email, name, updatedOrder._id, updatedOrder.shipping?.trackingNumber || 'N/A', updatedOrder.shipping?.method || 'N/A');
+                await sendShippingNotificationEmail(email, name, updatedOrder._id, updatedOrder.shipping?.shippingTrackingNumber || 'N/A', updatedOrder.shipping?.shippingMethod || 'N/A');
             }
         } catch (error) {
             throw new Error(`Error enviando la notificación de envío: ${error.message}.`);
@@ -67,12 +67,12 @@ export const updateFields = async (id, fields) => {
 export const dispatchOrder = async (id, shippingTrackingNumber) => {
     const order = await OrderRepository.getOrderById(id);
     if (!order) throw new Error('Orden no encontrada para despachar.');
-    const updatedOrder = await OrderRepository.updateOrder(id, { status: 'enviado', 'shipping.trackingNumber': shippingTrackingNumber });
+    const updatedOrder = await OrderRepository.updateOrder(id, { status: 'enviado', 'shipping.shippingTrackingNumber': shippingTrackingNumber });
     try {
         const email = updatedOrder.user?.email ? decryptText(updatedOrder.user.email) : updatedOrder.guestEmail;
         const name = updatedOrder.user?.name ? decryptText(updatedOrder.user.name) : 'Cliente';
         if (email) {
-            await sendShippingNotificationEmail(email, name, updatedOrder._id, shippingTrackingNumber, updatedOrder.shipping?.method || 'N/A');
+            await sendShippingNotificationEmail(email, name, updatedOrder._id, shippingTrackingNumber, updatedOrder.shipping?.shippingMethod || 'N/A');
         }
     } catch (error) {
         throw new Error(`Error enviando email de despacho: ${error.message}.`);
