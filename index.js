@@ -30,7 +30,7 @@ app.use(limiter);
 app.use('/users', userRoutes);
 app.use('/products', productRoutes);
 app.use('/orders', orderRoutes);
-app.use('/movements', stockMovementRoutes);
+app.use('/stock', stockMovementRoutes);
 app.use('/shipping', shippingRoutes);
 
 app.use('/', csrfRoutes);
