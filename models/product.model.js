@@ -54,7 +54,8 @@ const ProductSchema = new mongoose.Schema({
     },
     variations: {
         type: [variationSchema],
-        required: true
+        required: true,
+        validate: [array => array.length > 0, 'Se requiere al menos una variante.']
     },
     isActive: {
         type: Boolean,
@@ -71,6 +72,31 @@ ProductSchema.index({ name: 'text', brand: 'text' });
 ProductSchema.index({ gender: 1 });
 ProductSchema.index({ catalog : 1 });
 ProductSchema.index({ price: 1 });
+
+ProductSchema.methods.updateStock = function (size, color, quantity, type) {
+    const variation = this.variations.find(v => v.size === size && v.color === color);
+    if (!variation) throw new Error('Variación no encontrada.');
+    if (type === 'venta') {
+        if (variation.stock < quantity) throw new Error('Stock insuficiente.');
+        variation.stock -= quantity;
+    } else if (type === 'ingreso') {
+        variation.stock += quantity;
+    } else {
+        throw new Error('Tipo de movimiento inválido.');
+    }
+};
+
+ProductSchema.pre('validate', function (next) {
+    const seen = new Set();
+    for (const v of this.variations) {
+        const key = `${v.size}-${v.color}`;
+        if (seen.has(key)) {
+            return next(new Error('No puede haber variaciones duplicadas con el mismo tamaño y color.'));
+        }
+        seen.add(key);
+    }
+    next();
+});
 
 const Product = mongoose.model('Product', ProductSchema);
 export default Product;
