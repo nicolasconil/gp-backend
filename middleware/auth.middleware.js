@@ -70,3 +70,10 @@ export const verifyModerator = (req, res, next) => {
     }
     return res.status(403).json({ message: 'Acceso denegado: se requiere rol de moderador o administrador.'});
 };
+
+export const isAuthenticated = (req, res, next) => {
+    if (!req.user) {
+        return res.status(401).json({ message: 'Usuario no autenticado.' });
+    }
+    next();
+};
