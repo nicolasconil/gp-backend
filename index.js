@@ -11,6 +11,7 @@ import { limiter } from "./middleware/ratelimit.middleware.js";
 import userRoutes from "./routes/user.routes.js";
 import productRoutes from "./routes/product.routes.js";
 import orderRoutes from "./routes/order.routes.js";
+import stockMovementRoutes from "./routes/stockMovement.routes.js";
 import csrfRoutes from "./routes/csrf.routes.js";
 import authRoutes from "./routes/auth.routes.js";
 
@@ -28,6 +29,8 @@ app.use(limiter);
 app.use('/users', userRoutes);
 app.use('/products', productRoutes);
 app.use('/orders', orderRoutes);
+app.use('/movements', stockMovementRoutes);
+
 app.use('/', csrfRoutes);
 app.use('/', authRoutes);
 
