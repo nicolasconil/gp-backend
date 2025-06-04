@@ -6,8 +6,6 @@ import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import helmet from "helmet";
-import xss from "xss-clean";
-import mongoSanitize from "express-mongo-sanitize";
 import compression from "compression";
 import morgan from "morgan";
 
@@ -38,8 +36,6 @@ app.set('trust proxy', 1);
 app.disable('x-powered-by');
 
 app.use(helmet());
-app.use(xss());
-app.use(mongoSanitize());
 app.use(compression());
 app.use(cookieParser());
 app.use(express.json({ limit: '10kb' }));

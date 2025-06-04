@@ -15,16 +15,32 @@ export const createPreferenceController = async (req, res) => {
 
 export const webhookController = async (req, res) => {
     const { type, data } = req.body;
-    if (type !== 'payment') {
-        logger.info(`POST /mercadopago/webhook - Tipo de evento ignorado: ${type}.`);
-        return res.sendStatus(200);
+    const { topic, id } = req.query;
+    if (type && data) {
+        if (type !== 'payment') {
+            logger.info(`POST /mercadopago/webhook - Tipo de evento ignorado: ${type}.`);
+            return res.sendStatus(200);
+        }
+
+        try {
+            await processWebhook(data);
+            logger.info(`POST /mercadopago/webhook - Webhook procesado correctamente para payment ID: ${data.id}.`);
+            return res.sendStatus(200);
+        } catch (error) {
+            logger.error(`POST /mercadopago/webhook - Error al procesar webhook para payment ID ${data.id}: ${error.message}.`);
+            return res.sendStatus(500);
+        }
     }
-    try {
-        await processWebhook(data);
-        logger.info(`POST /mercadopago/webhook - Webhook procesado correctamente para payment ID: ${data.id}.`);
-        res.sendStatus(200);
-    } catch (error) {
-        logger.error(`POST /mercadopago/webhook - Error al procesar webhook para payment ID ${data.id}: ${error.message}.`);
-        res.sendStatus(500);
+    if (topic === 'payment' && id) {
+        try {
+            await processWebhook({ id });
+            logger.info(`POST /mercadopago/webhook - Webhook procesado correctamente para payment ID: ${id} (desde query).`);
+            return res.sendStatus(200);
+        } catch (error) {
+            logger.error(`POST /mercadopago/webhook - Error al procesar webhook desde query para payment ID ${id}: ${error.message}.`);
+            return res.sendStatus(500);
+        }
     }
+    logger.warn(`POST /mercadopago/webhook - Webhook recibido con formato desconocido. Body: ${JSON.stringify(req.body)}, Query: ${JSON.stringify(req.query)}`);
+    return res.sendStatus(400);
 };
