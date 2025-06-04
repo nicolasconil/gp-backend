@@ -5,7 +5,7 @@ import mapMPStatus from "../utils/mapMPStatus.js";
 
 export const createPreference = async (order) => {
     const items = order.products.map(item => ({
-        title: `Producto - ${item.product}`,
+        title: item.product,
         quantity: item.quantity,
         unit_price: item.price,
         currency_id: 'ARS'
@@ -13,18 +13,18 @@ export const createPreference = async (order) => {
     const preference = {
         items, 
         back_urls: {
-            success: ``,
-            failure: ``,
-            pending: ``,
+            success: `https://www.instagram.com/nicooconil/`,
+            failure: `https://x.com/nnicolasconil`,
+            pending: `https://x.com/nnicolasconil`,
         },
         auto_return: 'approved',
-        notifacation_url: `/mercadopago/webhook`,
-        external_preference: order._id.toString(),
+        notification_url: 'https://d4f4-190-183-80-198.ngrok-free.app/mercadopago/webhook',
+        external_reference: order._id.toString(),
         payer: {
             email: order.user?.email || order.guestEmail || 'invitado@example'
         }
     };
-    const response = await Preference(mpClient).create({ body: preference });
+    const response = await new Preference(mpClient).create({ body: preference });
     return response;
 };
 
