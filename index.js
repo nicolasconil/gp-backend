@@ -14,6 +14,7 @@ import orderRoutes from "./routes/order.routes.js";
 import stockMovementRoutes from "./routes/stockMovement.routes.js";
 import shippingRoutes from "./routes/shipping.routes.js";
 import catalogRoutes from "./routes/catalog.routes.js";
+import mercadoPagoRoutes from "./routes/mercadoPago.routes.js";
 import promotionRoutes from "./routes/promotion.routes.js";
 import newsletterRoutes from "./routes/newsletter.routes.js";
 
@@ -37,6 +38,7 @@ app.use('/orders', orderRoutes);
 app.use('/stock', stockMovementRoutes);
 app.use('/shipping', shippingRoutes);
 app.use('/catalogs', catalogRoutes);
+app.use('/mercadopago', mercadoPagoRoutes);
 app.use('/promotions', promotionRoutes);
 app.use('/newsletter', newsletterRoutes);
 

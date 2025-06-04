@@ -9,3 +9,6 @@
 !/uploads/.gitkeep
 /invoices/*
 !/invoices/.gitkeep
+
+# logs 
+logs/
