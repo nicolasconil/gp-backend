@@ -3,7 +3,7 @@ import * as ProductController from "../controllers/product.controller.js";
 import { createProductValidation, updateProductValidation } from "../middleware/validations/product.validation.js";
 import * as AuthMiddleware from "../middleware/auth.middleware.js";
 import upload from "../middleware/upload.middleware.js";
-import { csrfMiddleware } from "../middleware/csrf.middleware";
+import { csrfMiddleware } from "../middleware/csrf.middleware.js";
 
 const router = express.Router();
 

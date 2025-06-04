@@ -35,3 +35,5 @@ router.patch('/:id/status', csrfMiddleware, orderIdParamValidation, OrderControl
 router.patch('/:id/dispatch', csrfMiddleware, orderIdParamValidation, dispatchOrderValidation, OrderController.dispatchOrder);
 // eliminar orden
 router.delete('/:id', csrfMiddleware, orderIdParamValidation, OrderController.deleteOrder);
+
+export default router;

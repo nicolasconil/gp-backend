@@ -1,5 +1,5 @@
 import { body, param } from 'express-validator';
-import { handleValidationErrors } from './handleValidationErrors.js';
+import { handleValidationErrors } from './handleErrors.validation.js';
 
 export const createOrderValidation = [
     body('products').isArray({ min: 1 }).withMessage('Debe incluir al menos un producto en la orden'),

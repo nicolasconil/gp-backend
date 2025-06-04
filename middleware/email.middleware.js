@@ -1,5 +1,5 @@
 import nodemailer from "nodemailer";
-import { verificationEmailTemplate, orderConfirmationEmailTemplate, sendShippingNotificationEmailTemplate, passwordResetEmailTemplate } from "../utils/emailTemplate.js";
+import { verificationEmailTemplate, orderConfirmationEmailTemplate, sendShippingNotificationEmailTemplate, passwordResetEmailTemplate } from "../utils/emailTemplates.js";
 
 const transporter = nodemailer.createTransport({
     service: 'gmail',

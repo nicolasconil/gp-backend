@@ -1,3 +1,6 @@
+import dotenv from "dotenv";
+dotenv.config();
+
 import crypto from "crypto";
 import { logAudit } from "./logger.js";
 
