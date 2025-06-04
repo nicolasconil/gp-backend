@@ -8,7 +8,7 @@ export const verificationEmailTemplate = (name, url) => ({
         <h2 style="text-align: center; color: #333;">¡Hola ${name}!</h2>
         <p style="font-size: 16px; color: #555;">Gracias por registrarte en <strong>GP Footwear</strong>. Para completar tu registro, hacé click en el botón a continuación:</p>
         <div style="text-align: center; margin: 30px 0;">
-          <a href="${verificationUrl}" style="background-color: #4CAF50; color: #fff; padding: 14px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">
+          <a href="${url}" style="background-color: #4CAF50; color: #fff; padding: 14px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">
             Verificar mi correo
           </a>
         </div>
@@ -28,7 +28,7 @@ export const passwordResetEmailTemplate = (name, url) => ({
         <h2 style="text-align: center; color: #333;">¡Hola ${name}!</h2>
         <p style="font-size: 16px; color: #555;">Recibimos una solicitud para restablecer tu contraseña. Si fuiste vos, hacé click en el botón:</p>
         <div style="text-align: center; margin: 30px 0;">
-          <a href="${resetUrl}" style="background-color: #f44336; color: #fff; padding: 14px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">
+          <a href="${url}" style="background-color: #f44336; color: #fff; padding: 14px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">
             Restablecer contraseña
           </a>
         </div>

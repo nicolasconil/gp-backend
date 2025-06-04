@@ -12,6 +12,7 @@ import userRoutes from "./routes/user.routes.js";
 import productRoutes from "./routes/product.routes.js";
 import orderRoutes from "./routes/order.routes.js";
 import stockMovementRoutes from "./routes/stockMovement.routes.js";
+import promotionRoutes from "./routes/promotion.routes.js";
 import shippingRoutes from "./routes/shipping.routes.js";
 import csrfRoutes from "./routes/csrf.routes.js";
 import authRoutes from "./routes/auth.routes.js";
@@ -32,6 +33,7 @@ app.use('/products', productRoutes);
 app.use('/orders', orderRoutes);
 app.use('/stock', stockMovementRoutes);
 app.use('/shipping', shippingRoutes);
+app.use('/promo', promotionRoutes);
 
 app.use('/', csrfRoutes);
 app.use('/', authRoutes);
