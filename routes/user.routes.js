@@ -1,8 +1,9 @@
 import express from "express";
 import * as UserController from "../controllers/user.controller.js";
 import * as AuthMiddleware from "../middleware/auth.middleware.js";
-import { registerUserValidation, updateUserValidation } from "../middleware/validations/user.validation.js";
 import { csrfMiddleware } from "../middleware/csrf.middleware.js";
+import { registerUserValidation, updateUserValidation } from "../middleware/validations/user.validation.js";
+import { exportFormatValidation } from "../middleware/validations/data.validation.js";
 
 const router = express.Router();
 
@@ -31,7 +32,7 @@ router.get('/me', csrfMiddleware, UserController.getUserById);
 router.put('/me', updateUserValidation, csrfMiddleware, UserController.updateUser);
 router.delete('/me', csrfMiddleware, UserController.deleteAccount);
 router.get('/me/orders', csrfMiddleware, UserController.getUserWithOrders);
-router.get('/me/exports', csrfMiddleware, UserController.exportUserData);
+router.get('/me/exports', exportFormatValidation, csrfMiddleware, UserController.exportUserData);
 
 // rutas del moderador y administrador
 router.use(AuthMiddleware.verifyModerator);
