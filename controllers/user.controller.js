@@ -16,7 +16,7 @@ export const getAllUsers = async (req, res) => {
 
 export const getUserById = async (req, res) => {
     try {
-        const { id } = req.params;
+        const id  = req.user.id;
         const user = await UserService.getById(id);
         logger.info(`GET /users/${id} - Usuario obtenido.`);
         res.status(200).json(user);
@@ -109,7 +109,7 @@ export const exportUserData = async (req, res) => {
 
 export const getUserWithOrders = async (req, res) => {
     try {
-        const { id } = req.params;
+        const id = req.user.id;
         const user = await UserService.getUserWithOrders(id);
         if (!user) {
             return res.status(404).json({ message: 'Usuario no encontrado.' });
