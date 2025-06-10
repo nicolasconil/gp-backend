@@ -13,7 +13,7 @@ export const authenticateUser = async (email, password) => {
     const valid = await bcrypt.compare(password, user.password);
     if (!valid) throw new Error('Contraseña incorrecta.');
     if (!user.isEmailVerified) throw new Error('Debes verificar tu correo.');
-    const token = generateToken(user._id, user.role);
+    const token = generateToken(user._id, user.role, user.isEmailVerified);
     return { token, userId: user._id, role: user.role };
 };
 
