@@ -22,6 +22,7 @@ import catalogRoutes from "./routes/catalog.routes.js";
 import mercadoPagoRoutes from "./routes/mercadoPago.routes.js";
 import promotionRoutes from "./routes/promotion.routes.js";
 import newsletterRoutes from "./routes/newsletter.routes.js";
+import auhtRoutes from "./routes/auth.routes.js";
 
 import csrfRoutes from "./routes/csrf.routes.js";
 import authRoutes from "./routes/auth.routes.js";
@@ -68,6 +69,7 @@ app.use('/catalogs', catalogRoutes);
 app.use('/mercadopago', mercadoPagoRoutes);
 app.use('/promotions', promotionRoutes);
 app.use('/newsletter', newsletterRoutes);
+app.use('/', authRoutes);
 
 app.use('/', csrfRoutes);
 app.use('/', authRoutes);

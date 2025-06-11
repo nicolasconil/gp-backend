@@ -25,3 +25,9 @@ export const updateUserValidation = [
     body('phone.number').optional().matches(/^[1-9]\d{6,14}$/).withMessage('El número de teléfono no es válido.'),
     handleValidationErrors
 ];
+
+export const loginUserValidation = [
+    body('email').isEmail().withMessage('Debe proporcionar un correo electrónico válido.').normalizeEmail().trim(),
+    body('password').notEmpty().withMessage('La contraseña es obligatoria.').isLength({ min: 6 }).withMessage('La contraseña debe tener al menos 6 caracteres.'),
+    handleValidationErrors
+];

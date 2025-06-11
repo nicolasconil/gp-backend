@@ -26,23 +26,6 @@ export const getUserById = async (req, res) => {
     }
 };
 
-export const createUser = async (req, res) => {
-    try {
-        const email = req.body.email?.toLowerCase();
-        req.body.email = email;
-        const existingUser = await UserService.getByEmail(email);
-        if (existingUser) {
-            return res.status(400).json({ message: 'El correo electrónico ya está registrado.'});
-        }
-        const newUser = await AuthService.registerUser(req.body);
-        logger.info(`POST /users - Usuario creado con ID: ${newUser._id}.`);
-        res.status(201).json(newUser);
-    } catch (error) {
-        logger.error(`POST /users - ${error.message}`);  
-        res.status(400).json({ message: error.message });
-    }
-};
-
 export const updateUser = async (req, res) => {
     try {
         const { id } = req.params;
@@ -135,27 +118,3 @@ export const updateConsent = async (req, res) => {
     }
 };
 
-export const login = async (req, res) => {
-    try {
-        const { email, password } = req.body;
-        const lowerEmail = email?.toLowerCase();
-        const { token, userId, role } = await AuthService.authenticateUser(lowerEmail, password);
-        logger.info(`/POST /login - Usuario ${userId} autenticado correctamente.`);
-        res.cookie('token', token, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'Lax',
-            maxAge: 60 * 60 * 1000
-        });
-        res.cookie('refreshToken', refreshToken, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'Lax',
-            maxAge: 7 * 24 * 60 * 60 * 1000
-        });
-        res.status(200).json({ message: 'Inicio de sesión exitoso.', role });
-    } catch (error) {
-        logger.error(`/POST /login - ${error.message}`);
-        res.status(401).json({ message: error.message });
-    }
-};

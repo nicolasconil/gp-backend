@@ -1,50 +1,20 @@
 import express from "express";
-import * as AuthService from "../services/auth.service.js";
+import * as AuthController from "../controllers/auth.controller.js"
+import { csrfMiddleware } from "../middleware/csrf.middleware.js";
+import { registerUserValidation, loginUserValidation } from "../middleware/validations/user.validation.js";
+import { forgotPasswordValidation, resetPasswordValidation } from "../middleware/validations/auth.validation.js";
 
 const router = express.Router();
 
+// registro y login
+router.post('/signup', registerUserValidation, csrfMiddleware, AuthController.createUser);
+router.post('/login', loginUserValidation, csrfMiddleware, AuthController.login);
+// refresh token
+router.post('/refresh-token', csrfMiddleware, AuthController.refreshAccessToken);
 // verificación de email
-router.get('/verify-email', async (req, res) => {
-    const { token } = req.query;
-    try {
-        await AuthService.verifyUserEmail(token);
-        res.redirect(`${process.env.FRONTEND_URL}/verified-email`);
-    } catch (error) {
-        res.redirect(`${process.env.FRONTEND_URL}/verification-error`);
-    }
-});
-
-// solicita restablecimiento de contraseña
-router.post('/request-password-reset', async (req, res) => {
-    const { email } = req.body;
-    try {
-        await AuthService.requestPasswordReset(email);
-        res.status(200).json()
-    } catch (error) {
-        res.status(400).json({ error: error.message });
-    }
-});
-
-// valida el token de restablecimiento
-router.get('/validate-reset-token', async (req, res) => {
-    const { token } = req.query;
-    try {
-        await AuthService.validateResetPasswordToken(token);
-        res.status(200).json({ message: 'Token inválido.' });
-    } catch (error) {
-        res.status(400).json({ error: error.message });
-    }
-});
-
-// restablece la contraseña 
-router.post('/reset-password', async (req, res) => {
-    const { token, newPassword } = req.body;
-    try {
-        await AuthService.resetUserPassword(token, newPassword);+
-        res.status(200).json({ message: 'Contraseña actualizada correctamente.' });
-    } catch (error) {
-        res.status(400).json({ message: error.message });
-    }
-});
+router.get('/verify-email', AuthController.verifyEmail);
+// recuperación de contraseña
+router.post('/forgot-password', forgotPasswordValidation, csrfMiddleware, AuthController.requestPasswordReset);
+router.post('/reset-password', resetPasswordValidation, csrfMiddleware, AuthController.resetPassword);
 
 export default router;

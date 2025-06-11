@@ -2,7 +2,7 @@ import * as UserRepository from "../repositories/user.repository.js";
 import bcrypt from "bcrypt";
 import crypto from "crypto";
 import { encryptText } from "../utils/encryption.js";
-import { generateToken } from "../middleware/auth.middleware.js";
+import { generateRefreshToken, generateToken } from "../middleware/auth.middleware.js";
 import { sendVerificationEmail, sendPasswordResetEmail } from "../middleware/email.middleware.js";
 
 
@@ -14,7 +14,8 @@ export const authenticateUser = async (email, password) => {
     if (!valid) throw new Error('Contraseña incorrecta.');
     if (!user.isEmailVerified) throw new Error('Debes verificar tu correo.');
     const token = generateToken(user._id, user.role, user.isEmailVerified);
-    return { token, userId: user._id, role: user.role };
+    const refreshToken = generateRefreshToken(user._id, user.role);
+    return { token, refreshToken, userId: user._id, role: user.role };
 };
 
 export const registerUser = async ({
