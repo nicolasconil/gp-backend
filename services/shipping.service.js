@@ -20,7 +20,7 @@ export const updateShipping = async (id, updateData) => {
     return await ShippingRepository.updateShipping(id, updateData);
 };
 
-export const updateShipppingStatus = async (id, status) => {
+export const updateShippingStatus = async (id, status) => {
     return await ShippingRepository.updateShipping(id, { status });
 };
 

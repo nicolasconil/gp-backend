@@ -1,5 +1,5 @@
 import * as StockMovementRepository from "../repositories/stockMovement.repository.js";
-import * as ProductService from "../services/product.service.js";
+import * as ProductService from "../services/product.service.js"; 
 
 export const recordStockMovement = async (productId, size, color, quantity, movementType, user) => {
     const movement = {
@@ -8,7 +8,7 @@ export const recordStockMovement = async (productId, size, color, quantity, move
         color,
         quantity,
         movementType,
-        createdBy: user ? user._id : null,
+        createdBy: user ? user._id : null
     };
     await StockMovementRepository.createStockMovement(movement);
     await ProductService.updateStock(productId, size, color, quantity, movementType);

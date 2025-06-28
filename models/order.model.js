@@ -4,23 +4,35 @@ const OrderSchema = new mongoose.Schema({
     user: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
-        required: false
     },
     guestEmail: {
         type: String,
-        required: function () {
-            return !this.user;
-        }
+        required: true
+    },
+    guestName: {
+        type: String, 
+        required: true      
+    },
+    guestPhone: {
+        type: String,
+        required: true
+    },
+    guestAddress: {
+        street: { type: String, required: true },
+        city: { type: String, required: true },
+        province: { type: String, required: true },
+        postalCode: { type: String, required: true },
+        apartment: { type: String },
+        number: { type: String, required: true },
+        floor: { type: String },
     },
     products: [{
         product: {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'Product',
-            required: true
         },
         quantity: {
             type: Number,
-            required: true,
         },
         size: String,
         color: String,
@@ -29,7 +41,6 @@ const OrderSchema = new mongoose.Schema({
     shipping: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Shipping',
-        required: false
     },
     status: {
         type: String,
@@ -38,23 +49,25 @@ const OrderSchema = new mongoose.Schema({
     },
     totalAmount: {
         type: Number,
-        required: true
+        min: 0
     },
     payment: {
         method: {
             type: String,
             enum: ['mercadopago'],
-            required: true,
             default: 'mercadopago'
         },
         status: {
             type: String,
             enum: ['aprobado', 'pendiente', 'rechazado'],
-            required: true
         },
         transactionId: String, // MP payment.id
         preferenceId: String, // MP preference_id
         rawData: Object
+    },
+    cancelToken: {
+        type: String, 
+        unique: true
     },
     createdAt: {
         type: Date,
@@ -71,5 +84,4 @@ OrderSchema.pre('save', function(next) {
     next();
 });
 
-const Order = mongoose.model('Order', OrderSchema);
-export default Order;
+export default mongoose.model('Order', OrderSchema);

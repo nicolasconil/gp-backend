@@ -1,4 +1,5 @@
 import * as StockMovementService from "../services/stockMovement.service.js";
+import logger from "../utils/logger.js"; 
 
 export const recordStockMovement = async (req, res) => {
     try {
@@ -17,8 +18,14 @@ export const recordStockMovement = async (req, res) => {
             logger.error(`POST /stock - Tipo de movimiento inválido: ${movementType}`);
             return res.status(400).json({ message: 'El tipo de movimiento debe ser "venta" o "ingreso".' });
         }
-        const user = req.user;
-        await StockMovementService.recordStockMovement(productId, size, color, qty, movementType, user);
+        const movement = {
+            product: productId,
+            size,
+            color,
+            quantity: qty,
+            movementType
+        };
+        await StockMovementService.recordStockMovement(movement);
         logger.info(`POST /stock - Movimiento de stock registrado para producto ${productId}, tipo: ${movementType}, cantidad: ${qty}.`);
         return res.status(201).json({ message: 'Movimiento de stock registrado correctamente.' });
     } catch (error) {

@@ -36,8 +36,9 @@ export const sendVerificationEmail = async (email, name, verificationUrl) => {
     });
 };
 
-export const sendOrderConfirmationEmail = async (email, name, orderId, total, pdfPath) => {
-    const { subject, text, html } = orderConfirmationEmailTemplate(name, orderId, total);
+export const sendOrderConfirmationEmail = async (email, name, orderId, total, pdfPath, cancelToken) => {
+    const cancelUrl = `${process.env.FRONTEND_URL}/cancelar-orden?token=${cancelToken}`;
+    const { subject, text, html } = orderConfirmationEmailTemplate(name, orderId, total, cancelUrl);
     await sendEmail({
         to: email,
         subject,

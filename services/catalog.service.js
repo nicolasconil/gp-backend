@@ -1,9 +1,6 @@
 import * as CatalogRepository from "../repositories/catalog.repository.js";
 
 export const createCatalog = async (name, description) => {
-    if (!name || !description) {
-        throw new Error('El nombre y la descripción son obligatorios.');
-    }
     try {
         const catalog = await CatalogRepository.createCatalog(name, description);
         return catalog;
@@ -22,7 +19,6 @@ export const getAllCatalogs = async (filter = {}) => {
 };
 
 export const getCatalogById = async (id) => {
-    if (!id) throw new Error('El ID del catálogo es obligatorio.');
     try {
         const catalog = await CatalogRepository.getCatalogById(id);
         return catalog;
@@ -32,19 +28,15 @@ export const getCatalogById = async (id) => {
 };
 
 export const updateCatalog = async (id, updateData) => {
-    if (!id || !updateData) {
-        throw new Error('El ID y los datos de actualización son obligatorios.');
-    }
     try {
         const updatedCatalog = await CatalogRepository.updateCatalog(id, updateData);
-        return updateCatalog;
+        return updatedCatalog;
     } catch (error) {
         throw new Error(`Error al actualizar el catálogo: ${error.message}.`);
     }
 };
 
 export const deleteCatalog = async (id) => {
-    if (!id) throw new Error('El ID del catálogo es obligatorio.');
     try {
         const deletedCatalog = await CatalogRepository.deleteCatalog(id);
         return deletedCatalog;

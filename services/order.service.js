@@ -2,9 +2,12 @@ import * as OrderRepository from "../repositories/order.repository.js";
 import { generateInvoice } from "../utils/invoiceGenerator.js";
 import { sendOrderConfirmationEmail, sendShippingNotificationEmail } from "../middleware/email.middleware.js";
 import path from "path";
-import { decryptText } from "../utils/encryption.js";
+import crypto from "crypto";
 
 export const create = async (orderData) => {
+    const cancelToken = crypto.randomBytes(24).toString('hex');
+    orderData.cancelToken = cancelToken;
+
     const order = await OrderRepository.createOrder(orderData);
     try {
         await processAfterOrder(order);
@@ -50,32 +53,26 @@ export const updatePaymentInfo = async (orderId, paymentInfo) => {
 
 export const updateFields = async (id, fields) => {
     const updatedOrder = await OrderRepository.updateOrder(id, fields);
-    if (['enviado', 'entregado'].includes(fields.status)) {
-        try {
-            const email = updatedOrder.user?.email ? decryptText(updatedOrder.user.email) : updatedOrder.guestEmail;
-            const name = updatedOrder.user?.name ? decryptText(updatedOrder.user.name) : 'Cliente';
-            if (email) {
-                await sendShippingNotificationEmail(email, name, updatedOrder._id, updatedOrder.shipping?.shippingTrackingNumber || 'N/A', updatedOrder.shipping?.shippingMethod || 'N/A');
-            }
-        } catch (error) {
-            throw new Error(`Error enviando la notificación de envío: ${error.message}.`);
-        }
-    }
     return updatedOrder;
 };
 
 export const dispatchOrder = async (id, shippingTrackingNumber) => {
-    const order = await OrderRepository.getOrderById(id);
-    if (!order) throw new Error('Orden no encontrada para despachar.');
     const updatedOrder = await OrderRepository.updateOrder(id, { status: 'enviado', 'shipping.shippingTrackingNumber': shippingTrackingNumber });
     try {
-        const email = updatedOrder.user?.email ? decryptText(updatedOrder.user.email) : updatedOrder.guestEmail;
-        const name = updatedOrder.user?.name ? decryptText(updatedOrder.user.name) : 'Cliente';
+        const email = updatedOrder.guestEmail;
+        const name = updatedOrder.guestName || 'Cliente';
+        const carrier = updatedOrder.shipping?.shippingMethod || 'N/A';
         if (email) {
-            await sendShippingNotificationEmail(email, name, updatedOrder._id, shippingTrackingNumber, updatedOrder.shipping?.shippingMethod || 'N/A');
+            await sendShippingNotificationEmail(
+                email,
+                name,
+                updatedOrder._id,
+                shippingTrackingNumber,
+                carrier
+            );
         }
     } catch (error) {
-        throw new Error(`Error enviando email de despacho: ${error.message}.`);
+        throw new Error(`Error enviando email de despacho: ${error.message}`);
     }
     return updatedOrder;
 };
@@ -88,10 +85,19 @@ export const processAfterOrder = async (order) => {
             `factura-${order._id}.pdf`
         )
         await generateInvoice(order, invoicePath);
-        const email = order.user?.email ? decryptText(order.user.email) : order.guestEmail;
-        const name = order.user?.name ? decryptText(order.user.name) : 'Cliente';
+        
+        const email = order.guestEmail;
+        const name = order.guestName || 'Cliente';
+
         if (email) {
-            await sendOrderConfirmationEmail(email, name, order._id, order.totalAmount, invoicePath);
+            await sendOrderConfirmationEmail(
+                email,
+                name,
+                order._id, 
+                order.totalAmount,
+                invoicePath,
+                order.cancelToken
+            );
         }
     } catch (error) {
         throw new Error(`Error en procesar la orden: ${error.message}.`);

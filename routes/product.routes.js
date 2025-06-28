@@ -1,6 +1,5 @@
 import express from "express";
 import * as ProductController from "../controllers/product.controller.js";
-import { createProductValidation, updateProductValidation } from "../middleware/validations/product.validation.js";
 import * as AuthMiddleware from "../middleware/auth.middleware.js";
 import upload from "../middleware/upload.middleware.js";
 import { csrfMiddleware } from "../middleware/csrf.middleware.js";
@@ -18,8 +17,8 @@ router.use(AuthMiddleware.verifyToken);
 router.use(AuthMiddleware.verifyModerator);
 
 // creación, actualización, eliminación y actualizar stock de un producto
-router.post('/', csrfMiddleware, upload.single('image'), createProductValidation, ProductController.create);
-router.put('/:id', csrfMiddleware, upload.single('image'), updateProductValidation, ProductController.update);
+router.post('/', csrfMiddleware, upload.single('image'), ProductController.create);
+router.put('/:id', csrfMiddleware, upload.single('image'), ProductController.update);
 router.delete('/:id', csrfMiddleware, ProductController.remove);
 router.patch('/:id/stock', csrfMiddleware, ProductController.updateStock);
 

@@ -38,9 +38,9 @@ export const passwordResetEmailTemplate = (name, url) => ({
   `
 });
 
-export const orderConfirmationEmailTemplate = (name, orderId, total, shippingCost) => ({
+export const orderConfirmationEmailTemplate = (name, orderId, total, cancelUrl) => ({
   subject: `Tu pedido ${orderId} ha sido recibido`,
-  text: `¡Hola ${name}! Gracias por tu compra. Tu total es $${total}. Adjuntamos la factura.`,
+  text: `¡Hola ${name}! Gracias por tu compra. Tu total es $${total}. Adjuntamos la factura.\n\nSi necesitás cancelar tu pedido antes de que sea procesado, podés hacerlo aquí:\n${cancelUrl}`,
   html: `
     <div style="font-family: Arial, sans-serif; background-color: #f6f6f6; padding: 40px;">
       <div style="max-width: 600px; margin: auto; background: #fff; padding: 30px; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.1);">
@@ -49,10 +49,18 @@ export const orderConfirmationEmailTemplate = (name, orderId, total, shippingCos
         <p style="font-size: 16px; color: #555;">Recibimos tu pedido <strong>#${orderId}</strong>.</p>
         <p style="font-size: 16px; color: #555;">Importe total: <strong>$${total}</strong></p>
         <p style="font-size: 14px; color: #999;">Adjuntamos la factura en PDF. Te avisaremos cuando tu pedido esté en camino.</p>
+        <hr />
+        <p style="font-size: 16px; color: #555;">¿Querés cancelar tu pedido? Hacelo antes de que sea procesado:</p>
+        <div style="text-align: center; margin: 20px 0;">
+          <a href="${cancelUrl}" style="background-color: #e53935; color: #fff; padding: 14px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">
+            Cancelar pedido
+          </a>
+        </div>
       </div>
     </div>
   `
 });
+
 
 export const sendShippingNotificationEmailTemplate = (name, orderId, trackingNumber, carrier) => ({
   subject: `Tu pedido ${orderId} fue enviado 🚚`,

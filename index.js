@@ -41,6 +41,8 @@ app.use(cookieParser());
 app.use(express.json({ limit: '10kb' }));
 app.use(express.urlencoded({ extended: true }));
 
+// app.use(csrfProtection);
+
 if (process.env.NODE_ENV === 'development') {
     app.use(morgan('dev'));
 } else {
@@ -49,6 +51,7 @@ if (process.env.NODE_ENV === 'development') {
 
 app.use(cors({
     origin: function (origin, callback) {
+        console.log("Origin: ", origin);
         if (!origin) return callback(null, true);
         if(allowedOrigins.includes(origin)) return callback(null, true);
         return callback(new Error('Not allowed by CORS'));
@@ -59,19 +62,18 @@ app.use(cors({
 app.use('/', limiter);
 app.use(requestLogger);
 
-app.use('/users', userRoutes);
+app.use('/api/users', userRoutes);
 app.use('/products', productRoutes);
 app.use('/orders', orderRoutes);
 app.use('/stock', stockMovementRoutes);
 app.use('/shipping', shippingRoutes);
 app.use('/catalogs', catalogRoutes);
-app.use('/mercadopago', mercadoPagoRoutes);
+app.use('/api/mercadopago', mercadoPagoRoutes);
 app.use('/promotions', promotionRoutes);
 app.use('/newsletter', newsletterRoutes);
-app.use('/', authRoutes);
 
-app.use('/', csrfRoutes);
-app.use('/', authRoutes);
+app.use('/api', csrfRoutes);
+app.use('/api', authRoutes);
 
 app.get('/', (req, res) => {
     res.send("Backend GP Footwear funcionando.");

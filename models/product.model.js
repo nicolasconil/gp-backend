@@ -3,15 +3,12 @@ import mongoose from "mongoose";
 const variationSchema = new mongoose.Schema({
     size: {
         type: Number,
-        required: true
     },
     color: {
         type: String,
-        required: true
     },
     stock: {
         type: Number,
-        required: true,
         min: 0
     },
     stockMinimo: {
@@ -23,29 +20,23 @@ const variationSchema = new mongoose.Schema({
 const ProductSchema = new mongoose.Schema({
     name: {
         type: String,
-        required: true
     },
     brand: {
         type: String,
-        required: true
     },
     price: {
         type: Number,
-        required: true,
         min: 0
     },
     description: {
         type: String,
-        required: true
     },
     images: {
         type: [String],
-        required: true,
         validate: [array => array.length > 0, 'Se requiere al menos una imagen']
     },
     gender: {
         type: String,
-        required: true,
         enum: ['hombre', 'mujer', 'niños', 'unisex']
     },
     catalog: {
@@ -54,12 +45,10 @@ const ProductSchema = new mongoose.Schema({
     },
     variations: {
         type: [variationSchema],
-        required: true,
         validate: [array => array.length > 0, 'Se requiere al menos una variante.']
     },
     isActive: {
         type: Boolean,
-        required: true,
         default: true
     },
     createdAt: {
@@ -98,5 +87,4 @@ ProductSchema.pre('validate', function (next) {
     next();
 });
 
-const Product = mongoose.model('Product', ProductSchema);
-export default Product;
+export default mongoose.model('Product', ProductSchema);

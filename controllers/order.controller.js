@@ -1,18 +1,11 @@
 import * as OrderService from "../services/order.service.js";
-import * as AuthService from "../services/auth.service.js";
 import logger from "../utils/logger.js";
 
 export const createOrder = async (req, res) => {
     try {
-        let userId = req.user?._id || null;
-        if (!userId) {
-            const { address, phone } = req.body;
-            const guestUser = await AuthService.createGuestUser({ address, phone });
-            userId = guestUser._id;
-        }
         const orderData = {
             ...req.body,
-            user: userId
+            user: undefined
         };
         const order = await OrderService.create(orderData);
         logger.info(`POST /orders - Orden creada con ID: ${order._id}.`);
@@ -46,18 +39,6 @@ export const getOrderById = async (req, res) => {
     }
 };
 
-export const getMyOrders = async (req, res) => {
-    try {
-        const userId = req.user._id;
-        const orders = await OrderService.getOrdersByUserId(userId);
-        logger.info(`GET /orders/mine - ${orders.length} órdenes del usuario ${userId} obtenidas.`);
-        res.status(200).json(orders);
-    } catch (error) {
-        logger.error(`GET /orders/mine - ${error.message}.`);
-        res.status(500).json({ message: `Error al obtener tus órdenes: ${error.message}.` });
-    }
-};
-
 export const updateOrderStatus = async (req, res) => {
     try {
         const { id } = req.params;
@@ -74,10 +55,6 @@ export const updateOrderStatus = async (req, res) => {
 export const updateOrderFields = async (req, res) => {
     try {
         const { id } = req.params;
-        const order = await OrderService.getById(id);
-        if (!order || order.user.toString() !== req.user._id.toString()) {
-            return res.status(403).json({ message: "No autorizado para modificar esta orden." });
-        }
         const updatedOrder = await OrderService.updateFields(id, req.body);
         logger.info(`PATCH /orders/${id} - Orden actualizada con nuevos campos.`);
         res.status(200).json(updatedOrder);
@@ -112,30 +89,26 @@ export const deleteOrder = async (req, res) => {
     }
 };
 
-export const cancelMyOrder = async (req, res) => {
-    try {
-        const { id } = req.params;
-        const order = await OrderService.getById(id);
-        if (!order) {
-            logger.warn(`CANCEL /orders/${id} - Orden no encontrada.`);
-            return res.status(404).json({ message: 'Orden no encontrada.' });
-        }
-        if (!order.user || order.user.toString() !== req.user.id) {
-            logger.warn(`CANCEL /orders/${id} - Usuario no autorizado.`);
-            return res.status(403).json({ message: 'No autorizado para cancelar esta orden.' });
-        }
-        if (order.status !== 'pendiente') {
-            logger.warn(`CANCEL /orders/${id} - Estado inválido (${order.status}).`);
-            return res.status(400).json({ message: `No se puede cancelar una orden con estado: ${order.status}.` });
-        }
-        const updatedOrder = await OrderService.updateStatus(id, 'cancelado');
-        logger.info(`CANCEL /orders/${id} - Orden cancelada.`);
-        res.status(200).json(updatedOrder);
-    } catch (error) {
-        logger.error(`CANCEL /orders/${req.params.id} - ${error.message}.`);
-        res.status(500).json({ message: `Error al cancelar la compra: ${error.message}.` });
-    }
-};
+// export const cancelMyOrder = async (req, res) => {
+//     try {
+//         const { cancelToken } = req.body;
+//         const order = await OrderService.getByCancelToken(cancelToken);
+//         if (!order) {
+//             logger.warn(`CANCEL /orders - Orden no encontrada.`);
+//             return res.status(404).json({ message: 'Orden no encontrada.' });
+//         }
+//         if (order.status !== 'pendiente') {
+//             logger.warn(`CANCEL /orders/${id} - Estado inválido (${order.status}).`);
+//             return res.status(400).json({ message: `No se puede cancelar una orden con estado: ${order.status}.` });
+//         }
+//         const updatedOrder = await OrderService.updateStatus(order._id, 'cancelado');
+//         logger.info(`CANCEL /orders/${order._id} - Orden cancelada.`);
+//         res.status(200).json(updatedOrder);
+//     } catch (error) {
+//         logger.error(`CANCEL /orders/${req.params.id} - ${error.message}.`);
+//         res.status(500).json({ message: `Error al cancelar la compra: ${error.message}.` });
+//     }
+// };
 
 export const updateOrderPayment = async (req, res) => {
     try {

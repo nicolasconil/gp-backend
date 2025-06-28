@@ -40,13 +40,6 @@ export const verifyToken = (req, res, next) => {
     }
 };
 
-export const verifyEmailVerified = (req, res, next) => {
-    if (!req.user || req.user.isEmailVerified === false) {
-        return res.status(403).json({ message: 'Debes verificar tu correo electrónico.' });
-    }
-    next();
-}
-
 export const verifyRole = (requiredRole) => {
     return (req, res, next) => {
         if (!req.user) {
@@ -69,11 +62,4 @@ export const verifyModerator = (req, res, next) => {
         return next();
     }
     return res.status(403).json({ message: 'Acceso denegado: se requiere rol de moderador o administrador.'});
-};
-
-export const isAuthenticated = (req, res, next) => {
-    if (!req.user) {
-        return res.status(401).json({ message: 'Usuario no autenticado.' });
-    }
-    next();
 };
