@@ -1,4 +1,5 @@
 import * as AuthService from "../services/auth.service.js";
+import User from "../models/user.model.js";
 import logger from "../utils/logger.js";
 import jwt from "jsonwebtoken";
 
@@ -7,6 +8,22 @@ const refreshSecretKey = process.env.REFRESH_SECRET_KEY;
 if (!refreshSecretKey) {
     throw new Error('La clave REFRESH_SECRET_KEY debe estar definida.');
 }
+
+export const createUser = async (req, res) => {
+    try {
+        const { email, password, role } = req.body;
+        const user = new User({
+            email,
+            password,
+            role,
+            isEmailVerified: true,
+        });
+        await user.save();
+        res.status(201).json({ message: 'Usuario creado correctamente', userId: user._id });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
 
 export const login = async (req, res) => {
     try {

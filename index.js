@@ -73,7 +73,7 @@ app.use('/promotions', promotionRoutes);
 app.use('/newsletter', newsletterRoutes);
 
 app.use('/api', csrfRoutes);
-app.use('/api', authRoutes);
+app.use('/api/auth', authRoutes);
 
 app.get('/', (req, res) => {
     res.send("Backend GP Footwear funcionando.");

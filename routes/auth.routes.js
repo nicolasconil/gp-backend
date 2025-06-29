@@ -9,7 +9,9 @@ router.post('/login', csrfMiddleware, AuthController.login);
 // refresh token
 router.post('/refresh-token', csrfMiddleware, AuthController.refreshAccessToken);
 // recuperación de contraseña
-router.post('/forgot-password', forgotPasswordValidation, csrfMiddleware, AuthController.requestPasswordReset);
-router.post('/reset-password', resetPasswordValidation, csrfMiddleware, AuthController.resetPassword);
+router.post('/forgot-password', csrfMiddleware, AuthController.requestPasswordReset);
+router.post('/reset-password', csrfMiddleware, AuthController.resetPassword);
+
+router.post('/create-user', AuthController.createUser);
 
 export default router;
