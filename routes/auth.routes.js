@@ -6,6 +6,8 @@ const router = express.Router();
 
 // login
 router.post('/login', csrfMiddleware, AuthController.login);
+// logout
+router.post('/logout', csrfMiddleware, AuthController.logout);
 // refresh token
 router.post('/refresh-token', csrfMiddleware, AuthController.refreshAccessToken);
 // recuperación de contraseña

@@ -19,7 +19,7 @@ export const getUserById = async (req, res) => {
         logger.info(`GET /users/${id} - Usuario obtenido.`);
         res.status(200).json(user);
     } catch (error) {
-        logger.error(`GET /users/${req.params.id} - ${error.message}`);
+        logger.error(`GET /users/me - ${error.message}`);
         res.status(404).json({ message: error.message });
     }
 };
