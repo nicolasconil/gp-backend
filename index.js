@@ -63,14 +63,14 @@ app.use('/', limiter);
 app.use(requestLogger);
 
 app.use('/api/users', userRoutes);
-app.use('/products', productRoutes);
-app.use('/orders', orderRoutes);
-app.use('/stock', stockMovementRoutes);
-app.use('/shipping', shippingRoutes);
-app.use('/catalogs', catalogRoutes);
+app.use('/api/products', productRoutes);
+app.use('/api/orders', orderRoutes);
+app.use('/api/stock-movements', stockMovementRoutes);
+app.use('/api/shipping', shippingRoutes);
+app.use('/api/catalogs', catalogRoutes);
 app.use('/api/mercadopago', mercadoPagoRoutes);
-app.use('/promotions', promotionRoutes);
-app.use('/newsletter', newsletterRoutes);
+app.use('/api/promotions', promotionRoutes);
+app.use('/api/newsletter', newsletterRoutes);
 
 app.use('/api', csrfRoutes);
 app.use('/api/auth', authRoutes);

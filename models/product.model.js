@@ -31,9 +31,9 @@ const ProductSchema = new mongoose.Schema({
     description: {
         type: String,
     },
-    images: {
-        type: [String],
-        validate: [array => array.length > 0, 'Se requiere al menos una imagen']
+    image: {
+        type: String,
+        required: true
     },
     gender: {
         type: String,
@@ -41,7 +41,8 @@ const ProductSchema = new mongoose.Schema({
     },
     catalog: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Catalog'
+        ref: 'Catalog',
+        required: false,
     },
     variations: {
         type: [variationSchema],
@@ -57,22 +58,22 @@ const ProductSchema = new mongoose.Schema({
     }
 });
 
-ProductSchema.index({ name: 'text', brand: 'text' });
-ProductSchema.index({ gender: 1 });
-ProductSchema.index({ catalog : 1 });
-ProductSchema.index({ price: 1 });
+ProductSchema.virtual('stock').get(function () {
+    return this.variations.reduce((acc, v) => acc + v.stock, 0);
+});
 
-ProductSchema.methods.updateStock = function (size, color, quantity, type) {
-    const variation = this.variations.find(v => v.size === size && v.color === color);
-    if (!variation) throw new Error('Variación no encontrada.');
-    if (type === 'venta') {
-        if (variation.stock < quantity) throw new Error('Stock insuficiente.');
-        variation.stock -= quantity;
-    } else if (type === 'ingreso') {
-        variation.stock += quantity;
-    } else {
-        throw new Error('Tipo de movimiento inválido.');
-    }
+ProductSchema.set('toJSON', { virtuals: true });
+ProductSchema.set('toObject', { virtuals: true });
+
+ProductSchema.methods.moveStock = function ({ size, color, qty, type }) {
+    const variation = this.variations.find(
+        (v) => v.size === size && v.color.toLowerCase() === color.toLowerCase()
+    );
+    if (!variation) throw new Error('Validación no encontrada.');
+    const delta = type === 'venta' ? -Math.abs(qty) : Math.abs(qty);
+    if (variation.stock + delta < 0) throw new Error('Stock insuficiente.');
+    variation.stock += delta;
+    return this;
 };
 
 ProductSchema.pre('validate', function (next) {

@@ -1,20 +1,42 @@
+import mongoose from "mongoose";
 import * as OrderRepository from "../repositories/order.repository.js";
+import * as StockMovementRepository from "../repositories/stockMovement.repository.js";
 import { generateInvoice } from "../utils/invoiceGenerator.js";
 import { sendOrderConfirmationEmail, sendShippingNotificationEmail } from "../middleware/email.middleware.js";
 import path from "path";
 import crypto from "crypto";
+import { orderConfirmationEmailTemplate } from "../utils/emailTemplates.js";
 
 export const create = async (orderData) => {
-    const cancelToken = crypto.randomBytes(24).toString('hex');
-    orderData.cancelToken = cancelToken;
-
-    const order = await OrderRepository.createOrder(orderData);
+    const session = await mongoose.startSession();
+    session.startTransaction();
     try {
+        const cancelToken = crypto.randomBytes(24).toString('hex');
+        orderData.cancelToken = cancelToken;
+        for (const item of orderData.items) {
+            await StockMovementRepository.createStockMovement(
+                {
+                    product: item.product,
+                    size: item.size,
+                    color: item.color,
+                    quantity: item.quantity,
+                    movementType: 'venta',
+                    note: `Orden en proceso`,
+                    createdBy: orderData.user,
+                },
+                session
+            );
+        }
+        const order = await OrderRepository.createOrder(orderData, session);
+        await session.commitTransaction();
+        session.endSession();
         await processAfterOrder(order);
+        return order;
     } catch (error) {
+        await session.abortTransaction();
+        session.endSession();
         throw new Error(`Error procesando la orden: ${error.message}.`);
     }
-    return order;
 };
 
 export const getAll = async (queryParams) => {
@@ -85,7 +107,7 @@ export const processAfterOrder = async (order) => {
             `factura-${order._id}.pdf`
         )
         await generateInvoice(order, invoicePath);
-        
+
         const email = order.guestEmail;
         const name = order.guestName || 'Cliente';
 
@@ -93,7 +115,7 @@ export const processAfterOrder = async (order) => {
             await sendOrderConfirmationEmail(
                 email,
                 name,
-                order._id, 
+                order._id,
                 order.totalAmount,
                 invoicePath,
                 order.cancelToken

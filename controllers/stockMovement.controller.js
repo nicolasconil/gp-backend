@@ -3,7 +3,8 @@ import logger from "../utils/logger.js";
 
 export const recordStockMovement = async (req, res) => {
     try {
-        const { productId, size, color, quantity, movementType } = req.body;
+        const { productId, size, color, quantity, movementType, note = '' } = req.body;
+        const user = req.user || null;
         if (!productId || !size || !color || quantity == null || !movementType) {
             logger.error(`POST /stock - Faltan campos obligatorios: ${JSON.stringify(req.body)}`);
             return res.status(400).json({ message: 'Faltan campos obligatorios en la solicitud.' });
@@ -18,14 +19,15 @@ export const recordStockMovement = async (req, res) => {
             logger.error(`POST /stock - Tipo de movimiento inválido: ${movementType}`);
             return res.status(400).json({ message: 'El tipo de movimiento debe ser "venta" o "ingreso".' });
         }
-        const movement = {
-            product: productId,
+        await StockMovementService.recordStockMovement(
+            productId,
             size,
             color,
-            quantity: qty,
-            movementType
-        };
-        await StockMovementService.recordStockMovement(movement);
+            qty,
+            movementType,
+            null,
+            note
+        );
         logger.info(`POST /stock - Movimiento de stock registrado para producto ${productId}, tipo: ${movementType}, cantidad: ${qty}.`);
         return res.status(201).json({ message: 'Movimiento de stock registrado correctamente.' });
     } catch (error) {
@@ -42,7 +44,7 @@ export const getStockMovementsByProduct = async (req, res) => {
             return res.status(400).json({ message: 'Falta el ID del producto.' });
         }
         const movements = await StockMovementService.getStockMovementsByProduct(productId);
-        logger.info(`GET /stock/${productId} - Movimientos de stock obtenidos para producto ${productId}.`);
+        logger.info(`GET /stock/${productId} - Movimientos de stock obtenidos para el producto ${productId}.`);
         return res.status(200).json(movements);
     } catch (error) {
         logger.error(`GET /stock/${req.params.productId} - Error al obtener los movimientos de stock: ${error.message}`);

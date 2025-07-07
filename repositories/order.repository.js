@@ -6,8 +6,8 @@ const populateOptions = [
     { path: 'shipping' },
 ];
 
-export const createOrder = async (data) => {
-    const newOrder = await Order.create(data);
+export const createOrder = async (data, session) => {
+    const newOrder = await Order.create(data, { session });
     return await Order.findById(newOrder._id).populate(populateOptions);
 };
 
