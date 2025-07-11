@@ -118,9 +118,9 @@ export const validateResetToken = async (req, res) => {
 
 // Restablecer la contraseña
 export const resetPassword = async (req, res) => {
-    const { token, newPassword } = req.body;
+    const { email, newPassword } = req.body;
     try {
-        await AuthService.resetUserPassword(token, newPassword);
+        await AuthService.resetUserPassword(email, newPassword);
         res.status(200).json({ message: 'Contraseña restablecida con éxito.' });
     } catch (error) {
         res.status(400).json({ error: error.message });

@@ -1,6 +1,5 @@
 import mongoose from "mongoose";
 import User from "../models/user.model.js";
-import crypto from "crypto";
 
 // validación de ObjectId antes de realizar la consulta
 const validateObjectId = (id) => {

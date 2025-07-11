@@ -5,7 +5,7 @@ import { csrfMiddleware } from "../middleware/csrf.middleware.js";
 const router = express.Router();
 
 // login
-router.post('/login', csrfMiddleware, AuthController.login);
+router.post('/login', AuthController.login);
 // logout
 router.post('/logout', csrfMiddleware, AuthController.logout);
 // refresh token
