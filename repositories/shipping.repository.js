@@ -13,6 +13,10 @@ export const getShippingById = async (id) => {
     return await Shipping.findById(id).populate('order');
 };
 
+export const getShippingOrderById = async (orderId) => {
+    return await Shipping.findOne({ order: orderId }).populate('order');
+};
+
 export const updateShipping = async (id, updateData) => {
     return await Shipping.findByIdAndUpdate(id, updateData, { new: true }).populate('order');
 };
@@ -21,6 +25,12 @@ export const deleteShipping = async (id) => {
     return await Shipping.findByIdAndDelete(id);
 };
 
-export const getShippingOrderById = async (orderId) => {
-    return await Shipping.findOne({ order: orderId }).populate('order');
+export const updateShippingTracking = async (shippingId, trackingNumber) => {
+    const updatedShipping = await Shipping.findByIdAndUpdate(
+        shippingId,
+        { shippingTrackingNumber: trackingNumber },
+        { new: true }
+    ).populate('order');
+    if (!updatedShipping) throw new Error('Envío no encontrado.');
+    return updatedShipping;
 };

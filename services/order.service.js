@@ -1,11 +1,11 @@
 import mongoose from "mongoose";
 import * as OrderRepository from "../repositories/order.repository.js";
 import * as StockMovementRepository from "../repositories/stockMovement.repository.js";
+import * as ShippingService from "../services/shipping.service.js";
 import { generateInvoice } from "../utils/invoiceGenerator.js";
 import { sendOrderConfirmationEmail, sendShippingNotificationEmail } from "../middleware/email.middleware.js";
 import path from "path";
 import crypto from "crypto";
-import { orderConfirmationEmailTemplate } from "../utils/emailTemplates.js";
 
 export const create = async (orderData) => {
     const session = await mongoose.startSession();
@@ -23,9 +23,7 @@ export const create = async (orderData) => {
                     movementType: 'venta',
                     note: `Orden en proceso`,
                     createdBy: orderData.user,
-                },
-                session
-            );
+                }, session);
         }
         const order = await OrderRepository.createOrder(orderData, session);
         await session.commitTransaction();
@@ -69,6 +67,9 @@ export const updatePaymentInfo = async (orderId, paymentInfo) => {
     const updatedOrder = await OrderRepository.updateOrder(orderId, updateData);
     if (paymentInfo.status === 'approved') {
         await processAfterOrder(updatedOrder);
+        if (!updatedOrder.shipping) {
+            await ShippingService.createShippingForOrder(updatedOrder._id);
+        }
     }
     return updatedOrder;
 };
@@ -124,4 +125,8 @@ export const processAfterOrder = async (order) => {
     } catch (error) {
         throw new Error(`Error en procesar la orden: ${error.message}.`);
     }
+};
+
+export const getOrdersForShipping = async () => {
+    return await OrderRepository.getOrdersForShipping();
 };

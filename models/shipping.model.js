@@ -4,7 +4,7 @@ const ShippingSchema = new mongoose.Schema({
     order: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Order',
-        unique: true
+        required: true
     },
     shippingCost: {
         type: Number,
@@ -31,25 +31,33 @@ const ShippingSchema = new mongoose.Schema({
     deliveryAddress: {
         fullName: {
             type: String,
+            default: ''
         },
         phone: {
             type: String,
+            default: ''
         },
         street: {
             type: String,
+            default: ''
         },
         number: {
             type: String,
+            default: ''
         },
         apartment: {
-            type: String
+            type: String,
+            default: ''
         },
         city: {
             type: String,
+            default: ''
         },
         province: {
             type: String,
-        }
+            default: ''
+        },
+        default: {}
     },
     notes: {
         type: String,
@@ -68,5 +76,7 @@ ShippingSchema.pre('save', function (next) {
     this.updatedAt = Date.now();
     next();
 });
+
+ShippingSchema.index({ order: 1 }, { unique: true });
 
 export default mongoose.model('Shipping', ShippingSchema);

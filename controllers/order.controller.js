@@ -1,4 +1,5 @@
 import * as OrderService from "../services/order.service.js";
+import * as ShippingService from "../services/shipping.service.js";
 import logger from "../utils/logger.js";
 
 export const createOrder = async (req, res) => {
@@ -8,7 +9,11 @@ export const createOrder = async (req, res) => {
             user: undefined
         };
         const order = await OrderService.create(orderData);
-        logger.info(`POST /orders - Orden creada con ID: ${order._id}.`);
+        if (!order) {
+            return res.status(400).json({ message: `Error al crear la orden: ${error.message}.` });
+        }
+        await ShippingService.createShippingForOrder(order._id);
+        logger.info(`POST /orders - Orden creada con ID: ${order._id} y envío asociado.`);
         res.status(201).json(order);
     } catch (error) {
         logger.error(`POST /orders - ${error.message}.`);
@@ -122,3 +127,14 @@ export const updateOrderPayment = async (req, res) => {
         res.status(400).json({ message: `Error al actualizar el pago: ${error.message}.` });
     }
 }; 
+
+export const getOrdersForShipping = async (req, res) => {
+    try {
+        const orders = await OrderService.getOrdersForShipping();
+        logger.info(`GET /orders/for-shipping - ${orders.length} órdenes pendientes sin envíos obtenidas.`);
+        res.status(200).json(orders);
+    } catch (error) {
+        logger.error(`GET /orders/for-shipping - ${error.message}`);
+        res.status(500).json({ message: `Error al obtener órdenes para envío: ${error.message}` });
+    };
+};

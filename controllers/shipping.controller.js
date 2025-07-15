@@ -1,18 +1,6 @@
 import * as ShippingService from "../services/shipping.service.js";
 import logger from "../utils/logger.js";
 
-export const createShipping = async (req, res) => {
-    try {
-        const shippingData = req.body;
-        const shipping = await ShippingService.createShipping(shippingData);
-        logger.info(`POST /shippings - Envío creado con ID: ${shipping._id}.`);
-        res.status(201).json(shipping);
-    } catch (error) {
-        logger.error(`POST /shippings - ${error.message}`);
-        res.status(500).json({ message: `Error al crear el envío: ${error.message}` });
-    }
-};
-
 export const getAllShippings = async (req, res) => {
     try {
         const shippings = await ShippingService.getAllShippings();

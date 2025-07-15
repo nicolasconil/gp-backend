@@ -52,3 +52,10 @@ export const updateOrder = async (id, updateData) => {
     await Order.findByIdAndUpdate(id, updateData);
     return await Order.findById(id).populate(populateOptions);
 };
+
+export const getOrdersForShipping = async () => {
+    return await Order.find({
+        status: 'pendiente',
+        shipping: { $exists: false }
+    }).populate(populateOptions);
+};
