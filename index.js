@@ -9,6 +9,10 @@ import helmet from "helmet";
 import compression from "compression";
 import morgan from "morgan";
 
+import path from "path";
+import { fileURLToPath } from "url";
+import { dirname } from "path";
+
 import { limiter } from "./middleware/ratelimit.middleware.js"; 
 
 import { requestLogger } from "./middleware/requestLogger.middleware.js";
@@ -36,10 +40,24 @@ app.set('trust proxy', 1);
 app.disable('x-powered-by');
 
 app.use(helmet());
+app.use((req, res, next) => {
+    res.setHeader('Content-Security-Policy', "default-src 'self; img-src 'self http://localhost:3000; object-src 'none'; script-src 'self'; style-src 'self';");
+    next();
+})
+
 app.use(compression());
 app.use(cookieParser());
 app.use(express.json({ limit: '10kb' }));
 app.use(express.urlencoded({ extended: true }));
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename);
+app.use('/uploads', express.static(path.join(__dirname, 'uploads'), {
+    setHeaders: (res) => {
+        res.set('Cross-Origin-Resource-Policy', 'cross-origin');
+        res.set('Cross-Origin-Opener-Policy', 'same-origin');
+    }
+}));
 
 // app.use(csrfProtection);
 
@@ -52,8 +70,9 @@ if (process.env.NODE_ENV === 'development') {
 app.use(cors({
     origin: function (origin, callback) {
         console.log("Origin: ", origin);
-        if (!origin) return callback(null, true);
-        if(allowedOrigins.includes(origin)) return callback(null, true);
+        if (!origin || allowedOrigins.includes(origin)) {
+            return callback(null, true);
+        }
         return callback(new Error('Not allowed by CORS'));
     },
     credentials: true

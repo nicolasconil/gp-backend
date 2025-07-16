@@ -14,6 +14,9 @@ const variationSchema = new mongoose.Schema({
     stockMinimo: {
         type: Number,
         default: 1
+    },
+    image: {
+        type: String
     }
 }, {_id: false });
 

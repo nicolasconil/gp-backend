@@ -34,10 +34,6 @@ export const create = async (data) => {
         }
     }
     data.name = data.name.trim().toLowerCase();
-    const existing = await ProductRepository.getAllProducts({ name: data.name, gender: data.gender });
-    if (existing.length > 0) {
-        throw new Error('Ya existe un producto con ese nombre y género.');
-    }
     return await ProductRepository.createProduct(data);
 };
 

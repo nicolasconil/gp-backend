@@ -66,7 +66,7 @@ export const create = async (req, res) => {
     if (!variations || !Array.isArray(variations) || variations.length === 0) {
       return res.status(400).json({ message: "Debe incluir al menos una variación." });
     }
-    const image = req.file?.filename || null;
+    const image = req.file ? `/uploads/${req.file.filename}` : null;
     const newProduct = await ProductService.create({
       name, brand, price, description,
       gender, catalog, isActive,
@@ -82,9 +82,15 @@ export const create = async (req, res) => {
 export const update = async (req, res) => {
   try {
     const { id } = req.params;
+    const product = await ProductService.getById(id);
+    if (!product) {
+      return res.status(404).json({ message: 'Producto no encontrado.' });
+    }
     if (req.file) {
       req.body.image = `/uploads/${req.file.filename}`;
-    }  
+    } else {
+      req.body.image = product.image;
+    }
     if (req.body.variations && typeof req.body.variations === 'string') {
       try {
         req.body.variations = JSON.parse(req.body.variations);
