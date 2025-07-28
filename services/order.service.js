@@ -3,37 +3,45 @@ import * as OrderRepository from "../repositories/order.repository.js";
 import * as StockMovementRepository from "../repositories/stockMovement.repository.js";
 import * as ShippingService from "../services/shipping.service.js";
 import { generateInvoice } from "../utils/invoiceGenerator.js";
-import { sendOrderConfirmationEmail, sendShippingNotificationEmail } from "../middleware/email.middleware.js";
+import { sendOrderConfirmationEmail, sendShippingNotificationEmail, sendUpdateStatusEmail } from "../middleware/email.middleware.js";
 import path from "path";
 import crypto from "crypto";
 
 export const create = async (orderData) => {
     const session = await mongoose.startSession();
-    session.startTransaction();
+    let committed = false;
     try {
+        session.startTransaction();
         const cancelToken = crypto.randomBytes(24).toString('hex');
         orderData.cancelToken = cancelToken;
-        for (const item of orderData.items) {
+        const order = await OrderRepository.createOrder(orderData, session);
+        if (!order || !order._id) {
+            throw new Error('No se pudo crear la orden, la orden es inválida.');
+        }
+        for (const item of orderData.products) {
             await StockMovementRepository.createStockMovement(
                 {
                     product: item.product,
                     size: item.size,
                     color: item.color,
-                    quantity: item.quantity,
+                    quantity: Math.abs(item.quantity),
                     movementType: 'venta',
-                    note: `Orden en proceso`,
+                    note: `Orden ${order._id} creada`,
                     createdBy: orderData.user,
-                }, session);
+                },
+                session
+            );
         }
-        const order = await OrderRepository.createOrder(orderData, session);
         await session.commitTransaction();
+        committed = true;
         session.endSession();
-        await processAfterOrder(order);
         return order;
     } catch (error) {
-        await session.abortTransaction();
+        if (!committed) {
+            await session.abortTransaction();
+        }
         session.endSession();
-        throw new Error(`Error procesando la orden: ${error.message}.`);
+        throw new Error(`No se pudo crear la orden: ${error.message}`);
     }
 };
 
@@ -48,7 +56,22 @@ export const getById = async (id) => {
 };
 
 export const updateStatus = async (id, status) => {
-    return await OrderRepository.updateOrderStatus(id, status);
+    try {
+        const updatedOrder = await OrderRepository.updateOrderStatus(id, status);
+        const email = updatedOrder.guestEmail;
+        const name = updatedOrder.guestName || 'Cliente';
+        if (email) {
+            await sendUpdateStatusEmail(
+                email,
+                name,
+                updatedOrder._id,
+                status 
+            );
+        }
+        return updatedOrder;
+    } catch (error) {
+        throw new Error(`Error al actualizar el estado de la orden: ${error.message}`);
+    }
 };
 
 export const remove = async (id) => {
@@ -101,17 +124,20 @@ export const dispatchOrder = async (id, shippingTrackingNumber) => {
 };
 
 export const processAfterOrder = async (order) => {
+    if (!order || !order._id) {
+        throw new Error('Orden inválida para procesamiento posterior.');
+    }
     try {
         const invoicePath = path.resolve(
             process.cwd(),
             'invoices',
-            `factura-${order._id}.pdf`
-        )
+            `comprobante-${order._id}.pdf`
+        );
         await generateInvoice(order, invoicePath);
-
         const email = order.guestEmail;
         const name = order.guestName || 'Cliente';
-
+        const cancelUrl = `${process.env.FRONTEND_URL}/cancelar/${order.cancelToken}`;
+        const viewOrderUrl = `${process.env.FRONTEND_URL}/seguimiento/${order._id}`;
         if (email) {
             await sendOrderConfirmationEmail(
                 email,
@@ -119,7 +145,9 @@ export const processAfterOrder = async (order) => {
                 order._id,
                 order.totalAmount,
                 invoicePath,
-                order.cancelToken
+                cancelUrl,
+                viewOrderUrl,
+                order
             );
         }
     } catch (error) {

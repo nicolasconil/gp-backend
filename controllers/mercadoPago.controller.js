@@ -21,7 +21,6 @@ export const webhookController = async (req, res) => {
             logger.info(`POST /mercadopago/webhook - Tipo de evento ignorado: ${type}.`);
             return res.sendStatus(200);
         }
-
         try {
             await processWebhook(data);
             logger.info(`POST /mercadopago/webhook - Webhook procesado correctamente para payment ID: ${data.id}.`);

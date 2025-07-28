@@ -31,16 +31,15 @@ const UserSchema = new mongoose.Schema({
     }
 });
 
-// pre-guardado para cifrar la contraseña y generar el email hash
 UserSchema.pre('save', async function (next) {
-    if (this.isModified('email')) { // si el email cambió, genera el hash
+    if (this.isModified('email')) { 
         this.emailHash = crypto.createHash('sha256').update(this.email.toLowerCase()).digest('hex');
     }
-    if (this.isModified('password')) { // si la contraseña se modificó, la cifra
+    if (this.isModified('password')) { 
         const salt = await bcrypt.genSalt(10);
         this.password = await bcrypt.hash(this.password, salt);
     }
-    if (this.isModified('termsAccepted') && this.termsAccepted && !this.termsAcceptedAt) { // si se aceptaron los términos, registra la fecha
+    if (this.isModified('termsAccepted') && this.termsAccepted && !this.termsAcceptedAt) { 
         this.termsAcceptedAt = new Date();
     }
     next();

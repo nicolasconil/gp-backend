@@ -1,5 +1,5 @@
 import nodemailer from "nodemailer";
-import { verificationEmailTemplate, orderConfirmationEmailTemplate, sendShippingNotificationEmailTemplate, passwordResetEmailTemplate } from "../utils/emailTemplates.js";
+import { orderConfirmationEmailTemplate, sendShippingNotificationEmailTemplate, adminNewOrderEmailTemplate, updateStatusEmailTemplate } from "../utils/emailTemplates.js";
 
 const transporter = nodemailer.createTransport({
     service: 'gmail',
@@ -26,19 +26,18 @@ export const sendEmail = async ({ to, subject, html, text = '', attachments = []
     }
 };
 
-export const sendVerificationEmail = async (email, name, verificationUrl) => {
-    const { subject, text, html } = verificationEmailTemplate(name, verificationUrl);
+export const sendUpdateStatusEmail = async (email, name, orderId, newStatus) => {
+    const { subject, text, html } = updateStatusEmailTemplate(name, orderId, newStatus);
     await sendEmail({
         to: email,
         subject,
         html,
-        text,
+        text
     });
 };
 
-export const sendOrderConfirmationEmail = async (email, name, orderId, total, pdfPath, cancelToken) => {
-    const cancelUrl = `${process.env.FRONTEND_URL}/cancelar-orden?token=${cancelToken}`;
-    const { subject, text, html } = orderConfirmationEmailTemplate(name, orderId, total, cancelUrl);
+export const sendOrderConfirmationEmail = async (email, name, orderId, total, pdfPath, cancelUrl, viewOrderUrl, order) => {
+    const { subject, text, html } = orderConfirmationEmailTemplate(order);
     await sendEmail({
         to: email,
         subject,
@@ -63,12 +62,13 @@ export const sendShippingNotificationEmail = async (email, name, orderId, tracki
     });
 };
 
-export const sendPasswordResetEmail = async (email, name, resetUrl) => {
-    const { subject, text, html } = passwordResetEmailTemplate(name, resetUrl);
+export const sendNewOrderNotificationToAdmin = async (order) => {
+    const { subject, text, html } = adminNewOrderEmailTemplate(order);
+    const adminEmail = process.env.ADMIN_EMAIL;
     await sendEmail({
-        to: email,
+        to: adminEmail,
         subject,
         html,
-        text
+        text,
     });
 };

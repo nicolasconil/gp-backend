@@ -1,30 +1,31 @@
 import mongoose from "mongoose";
 
+const AddressSchema = new mongoose.Schema({
+    street: { type: String, required: [true, "La dirección es obligatoria"] },
+    number: { type: String, required: [true, "El número es obligatorio"] },
+    apartment: String,
+    floor: String,
+    city: { type: String, required: [true, "La ciudad es obligatoria"] },
+    province: { type: String, required: [true, "La provincia es obligatoria"] },
+    postalCode: { type: String, required: [true, "El código postal es obligatorio"] },
+}, { _id: false });
+ 
 const OrderSchema = new mongoose.Schema({
-    user: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
-    },
     guestEmail: {
         type: String,
-        required: true
+        required: [true, 'El email es obligatorio'],
     },
     guestName: {
-        type: String, 
-        required: true      
+        type: String,
+        required: [true, 'El nombre es obligatorio'],
     },
     guestPhone: {
         type: String,
-        required: true
+        required: [true, 'El teléfono es obliogatorio'],
     },
     guestAddress: {
-        street: { type: String, required: true },
-        city: { type: String, required: true },
-        province: { type: String, required: true },
-        postalCode: { type: String, required: true },
-        apartment: { type: String },
-        number: { type: String, required: true },
-        floor: { type: String },
+        type: AddressSchema,
+        required: true
     },
     products: [{
         product: {
@@ -44,7 +45,7 @@ const OrderSchema = new mongoose.Schema({
     },
     status: {
         type: String,
-        enum: ['pendiente', 'procesando', 'enviado', 'entregado', 'cancelado'],
+        enum: ['pendiente', 'procesando', 'enviado', 'entregado', 'cancelado', 'rechazada'],
         default: 'pendiente'
     },
     totalAmount: {
@@ -52,21 +53,16 @@ const OrderSchema = new mongoose.Schema({
         min: 0
     },
     payment: {
-        method: {
-            type: String,
-            enum: ['mercadopago'],
-            default: 'mercadopago'
-        },
         status: {
             type: String,
             enum: ['aprobado', 'pendiente', 'rechazado'],
         },
-        transactionId: String, // MP payment.id
-        preferenceId: String, // MP preference_id
+        transactionId: String,
+        preferenceId: String,
         rawData: Object
     },
     cancelToken: {
-        type: String, 
+        type: String,
         unique: true
     },
     createdAt: {
@@ -79,7 +75,7 @@ const OrderSchema = new mongoose.Schema({
     }
 });
 
-OrderSchema.pre('save', function(next) {
+OrderSchema.pre('save', function (next) {
     this.updatedAt = Date.now();
     next();
 });

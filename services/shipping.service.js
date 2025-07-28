@@ -36,22 +36,27 @@ export const updateShippingTracking = async (orderId, shippingTrackingNumber) =>
 };
 
 export const createShippingForOrder = async (orderId) => {
+    if (!orderId) {
+        throw new Error('ID de la orden no proporcionado.');
+    }
     const order = await Order.findById(orderId);
-    if (!order) throw new Error('Orden no encontrada.');
-    const existingShipping = await ShippingRepository.getShippingById(orderId);
+    if (!order) {
+        throw new Error('Orden no encontrada.');
+    }
+    const existingShipping = await ShippingRepository.getShippingOrderById(orderId);
     if (existingShipping) return existingShipping;
     const shippingData = {
         order: order._id,
         deliveryAddress: {
-            fullName: order.guestName,
-            phone: order.guestPhone,
-            street: order.guestAddress.street,
-            number: order.guestAddress.number,
-            apartment: order.guestAddress.apartment,
-            city: order.guestAddress.city,
-            province: order.guestAddress.province,
+            fullName: order.guestName || order.user?.name || 'Cliente',
+            phone: order.guestPhone || order.user?.phone || '',
+            street: order.guestAddress?.street || '',
+            number: order.guestAddress?.number || '',
+            apartment: order.guestAddress?.apartment || '',
+            city: order.guestAddress?.city || '',
+            province: order.guestAddress?.province || '',
         },
-        destinationPostalCode: order.guestAddress.postalCode,
+        destinationPostalCode: order.guestAddress?.postalCode || '',
         shippingTrackingNumber: null,
         status: 'pendiente',
     };

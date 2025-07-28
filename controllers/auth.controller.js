@@ -3,7 +3,6 @@ import User from "../models/user.model.js";
 import logger from "../utils/logger.js";
 import jwt from "jsonwebtoken";
 
-// Secret para el refresh token
 const refreshSecretKey = process.env.REFRESH_SECRET_KEY;
 if (!refreshSecretKey) {
     throw new Error('La clave REFRESH_SECRET_KEY debe estar definida.');
@@ -30,11 +29,9 @@ export const login = async (req, res) => {
         const { email, password } = req.body;
         const lowerEmail = email?.toLowerCase();
 
-        // Autenticar usuario
         const { token, refreshToken, userId, role } = await AuthService.authenticateUser(lowerEmail, password);
         logger.info(`/POST /login - Usuario ${userId} autenticado correctamente.`);
 
-        // Configurar cookies con tokens
         res.cookie('token', token, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
@@ -70,10 +67,8 @@ export const refreshAccessToken = (req, res) => {
             return res.status(401).json({ message: 'No se proporcionó refresh token.' });
         }
 
-        // Validar el refresh token
         const decoded = jwt.verify(refreshToken, refreshSecretKey);
 
-        // Generar nuevo access token
         const newAccessToken = jwt.sign({
             id: decoded.id,
             role: decoded.role,
@@ -94,7 +89,6 @@ export const refreshAccessToken = (req, res) => {
     }
 };
 
-// Solicitar restablecimiento de contraseña
 export const requestPasswordReset = async (req, res) => {
     const { email } = req.body;
     try {
@@ -105,7 +99,6 @@ export const requestPasswordReset = async (req, res) => {
     }
 };
 
-// Validar el token de restablecimiento de contraseña
 export const validateResetToken = async (req, res) => {
     const { token } = req.query;
     try {
@@ -116,7 +109,6 @@ export const validateResetToken = async (req, res) => {
     }
 };
 
-// Restablecer la contraseña
 export const resetPassword = async (req, res) => {
     const { email, newPassword } = req.body;
     try {

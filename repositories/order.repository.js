@@ -1,17 +1,29 @@
 import Order from "../models/order.model.js";
 
 const populateOptions = [
-    { path: 'user' },
     { path: 'products.product' },
     { path: 'shipping' },
 ];
 
 export const createOrder = async (data, session) => {
-    const newOrder = await Order.create(data, { session });
-    return await Order.findById(newOrder._id).populate(populateOptions);
+    try {
+        console.log("Shipping recibido:", data.shipping);
+        const createdOrders = await Order.create([data], { session });
+        const newOrder = createdOrders[0];
+        if (!newOrder || !newOrder._id) {
+            throw new Error('No se pudo crear la orden en la base de datos.');
+        }
+        const order = await Order.findById(newOrder._id).populate(populateOptions).session(session);
+        if (!order) {
+            throw new Error('La orden no se pudo encontrar después de ser creada.');
+        }
+        return order;
+    } catch (error) {
+        throw new Error(`Error al crear la orden:  ${error.message}.`);
+    }
 };
 
-export const getAllOrders = async ({ page = 1, limit = 10, status, fromDate, toDate }) => {
+export const getAllOrders = async ({ page = 1, limit = 50, status, fromDate, toDate }) => {
     const query = {};
     if (status) {
         query.status = status;
@@ -33,7 +45,7 @@ export const getOrderById = async (id) => {
 
 export const updateOrderStatus = async (id, status) => {
     return await Order.findByIdAndUpdate(
-        id, 
+        id,
         { status, updatedAt: Date.now() },
         { new: true }
     ).populate(populateOptions);

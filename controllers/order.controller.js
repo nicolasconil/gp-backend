@@ -9,7 +9,7 @@ export const createOrder = async (req, res) => {
             user: undefined
         };
         const order = await OrderService.create(orderData);
-        if (!order) {
+        if (!order || !order._id) {
             return res.status(400).json({ message: `Error al crear la orden: ${error.message}.` });
         }
         await ShippingService.createShippingForOrder(order._id);
@@ -24,7 +24,7 @@ export const createOrder = async (req, res) => {
 export const getAllOrders = async (req, res) => {
     try {
         const orders = await OrderService.getAll(req.query);
-        logger.info(`GET /orders - ${orders.length} órdenes obtenidas.`);
+        logger.info(`GET /orders - ${orders.orders.length} órdenes obtenidas.`);
         res.status(200).json(orders);
     } catch (error) {
         logger.error(`GET /orders - ${error.message}.`);

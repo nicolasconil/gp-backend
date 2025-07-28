@@ -20,7 +20,7 @@ export const generateInvoice = (order, filePath) => {
         }
 
         // Título
-        doc.fontSize(18).font('Helvetica-Bold').text('Factura de compra', 50, 130);
+        doc.fontSize(18).font('Helvetica-Bold').text('Comprobante de compra', 50, 130);
         doc.fontSize(10).fillColor('#555').text(`Comprobante N° ${order._id.toString().slice(-6).toUpperCase()}`);
         doc.moveDown();
 
@@ -31,12 +31,13 @@ export const generateInvoice = (order, filePath) => {
             doc.font('Helvetica').fontSize(10).text(`${name}`);
             doc.text(`Email: ${order.user.email}`);
             if (order.user.phone?.number) doc.text(`Teléfono: ${order.user.phone.number}`);
-        } else if (order.shipping?.guestInfo) {
-            const guest = order.shipping.guestInfo;
-            const name = guest.name ? `${guest.name.first || ''} ${guest.name.last || ''}`.trim() : 'Sin nombre';
+        } else {
+            const name = order.guestName || 'Sin nombre';
+            const email = order.guestEmail || 'Sin email';
+            const phone = order.guestPhone || '';
             doc.font('Helvetica').fontSize(10).text(`${name}`);
-            doc.text(`Email: ${guest.email}`);
-            if (guest.phone?.number) doc.text(`Teléfono: ${guest.phone.number}`);
+            doc.text(`Email: ${email}`);
+            if (phone) doc.text(`Teléfono: ${phone}`);
         }
 
         doc.moveDown();
@@ -47,8 +48,12 @@ export const generateInvoice = (order, filePath) => {
 
         // Dirección
         doc.font('Helvetica-Bold').fontSize(12).text('Dirección de envío:');
-        const delivery = order.shipping;
-        const addr = delivery.deliveryAddress || delivery.guestInfo?.address || {};
+        let addr = {};
+        if (order.shipping?.deliveryAddress && Object.keys(order.shipping.deliveryAddress).length > 0) {
+            addr = order.shipping.deliveryAddress;
+        } else if (order.guestAddress) {
+            addr = order.guestAddress;
+        }
         doc.font('Helvetica').fontSize(10);
         doc.text(`Dirección: ${addr.street || ''} ${addr.number || ''}`);
         if (addr.apartment) doc.text(`Departamento: ${addr.apartment}`);
@@ -90,7 +95,7 @@ export const generateInvoice = (order, filePath) => {
 
         doc.moveDown(1);
         doc.fontSize(9).font('Helvetica');
-       
+
         doc.moveDown();
         doc.fontSize(9).text('Gracias por su compra.', { align: 'center' });
 
