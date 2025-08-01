@@ -32,4 +32,6 @@ router.patch('/:id/payment', csrfMiddleware, OrderController.updateOrderPayment)
 // eliminar orden
 router.delete('/:id', csrfMiddleware, OrderController.deleteOrder);
 
+router.get('/:id', OrderController.getOrderById);
+
 export default router;

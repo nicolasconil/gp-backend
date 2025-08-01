@@ -1,5 +1,5 @@
 import nodemailer from "nodemailer";
-import { orderConfirmationEmailTemplate, sendShippingNotificationEmailTemplate, adminNewOrderEmailTemplate, updateStatusEmailTemplate } from "../utils/emailTemplates.js";
+import { orderConfirmationEmailTemplate, sendShippingNotificationEmailTemplate, adminNewOrderEmailTemplate, updateStatusEmailTemplate, adminStockAlertEmailTemplate, sendOrderRejectedEmailTemplate } from "../utils/emailTemplates.js";
 
 const transporter = nodemailer.createTransport({
     service: 'gmail',
@@ -45,21 +45,21 @@ export const sendOrderConfirmationEmail = async (email, name, orderId, total, pd
         text,
         attachments: [
             {
-                filename: `factura-${orderId}.pdf`,
+                filename: `comprobante-${orderId}.pdf`,
                 path: pdfPath,
             },
         ]
     });
 };
 
-export const sendShippingNotificationEmail = async (email, name, orderId, trackingNumber, carrier) => {
-    const { subject, text, html } = sendShippingNotificationEmailTemplate(name, orderId, trackingNumber, carrier);
-    await sendEmail({
-        to: email,
-        subject,
-        html,
-        text
-    });
+export const sendShippingNotificationEmail = async (email, name, orderId, trackingNumber, carrier, isDelivered = false) => {
+  const { subject, text, html } = sendShippingNotificationEmailTemplate(name, orderId, trackingNumber, carrier, isDelivered);
+  await sendEmail({
+    to: email,
+    subject,
+    html,
+    text
+  });
 };
 
 export const sendNewOrderNotificationToAdmin = async (order) => {
@@ -67,6 +67,27 @@ export const sendNewOrderNotificationToAdmin = async (order) => {
     const adminEmail = process.env.ADMIN_EMAIL;
     await sendEmail({
         to: adminEmail,
+        subject,
+        html,
+        text,
+    });
+};
+
+export const sendStockAlertToAdmin = async (order) => {
+    const { subject, text, html } = adminStockAlertEmailTemplate(order);
+    const adminEmail = process.env.ADMIN_EMAIL;
+    await sendEmail({
+        to: adminEmail,
+        subject,
+        html,
+        text,
+    });
+};
+
+export const sendOrderRejectedEmail = async (email, order) => {
+    const { subject, text, html } = sendOrderRejectedEmailTemplate(order);
+    await sendEmail({
+        to: email,
         subject,
         html,
         text,

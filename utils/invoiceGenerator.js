@@ -2,106 +2,71 @@ import PDFDocument from "pdfkit";
 import fs from "fs";
 import path from "path";
 
+const capitalizeWords = (str) =>
+  str.replace(/\b\w/g, (char) => char.toUpperCase());
+
 export const generateInvoice = (order, filePath) => {
-    return new Promise((resolve, reject) => {
-        const dir = path.dirname(filePath);
-        if (!fs.existsSync(dir)) {
-            fs.mkdirSync(dir, { recursive: true });
-        }
-
-        const doc = new PDFDocument({ size: 'A4', margin: 50 });
-        const stream = fs.createWriteStream(filePath);
-        doc.pipe(stream);
-
-        // Logo
-        const logoPath = path.resolve('assets', 'logo.png');
-        if (fs.existsSync(logoPath)) {
-            doc.image(logoPath, 50, 40, { width: 80 });
-        }
-
-        // Título
-        doc.fontSize(18).font('Helvetica-Bold').text('Comprobante de compra', 50, 130);
-        doc.fontSize(10).fillColor('#555').text(`Comprobante N° ${order._id.toString().slice(-6).toUpperCase()}`);
-        doc.moveDown();
-
-        // Cliente y empresa (bloques separados)
-        doc.font('Helvetica-Bold').fontSize(12).fillColor('black').text('Emitido a:');
-        if (order.user) {
-            const name = order.user.name ? `${order.user.name.first || ''} ${order.user.name.last || ''}`.trim() : 'Sin nombre';
-            doc.font('Helvetica').fontSize(10).text(`${name}`);
-            doc.text(`Email: ${order.user.email}`);
-            if (order.user.phone?.number) doc.text(`Teléfono: ${order.user.phone.number}`);
-        } else {
-            const name = order.guestName || 'Sin nombre';
-            const email = order.guestEmail || 'Sin email';
-            const phone = order.guestPhone || '';
-            doc.font('Helvetica').fontSize(10).text(`${name}`);
-            doc.text(`Email: ${email}`);
-            if (phone) doc.text(`Teléfono: ${phone}`);
-        }
-
-        doc.moveDown();
-        doc.font('Helvetica-Bold').fontSize(12).text('Empresa:');
-        doc.font('Helvetica').fontSize(10).text('GP Footwear');
-        doc.text('Santa Fe, CP 3000');
-        doc.moveDown();
-
-        // Dirección
-        doc.font('Helvetica-Bold').fontSize(12).text('Dirección de envío:');
-        let addr = {};
-        if (order.shipping?.deliveryAddress && Object.keys(order.shipping.deliveryAddress).length > 0) {
-            addr = order.shipping.deliveryAddress;
-        } else if (order.guestAddress) {
-            addr = order.guestAddress;
-        }
-        doc.font('Helvetica').fontSize(10);
-        doc.text(`Dirección: ${addr.street || ''} ${addr.number || ''}`);
-        if (addr.apartment) doc.text(`Departamento: ${addr.apartment}`);
-        doc.text(`Ciudad: ${addr.city || ''}`);
-        doc.text(`Provincia: ${addr.province || ''}`);
-        doc.text(`Código postal: ${addr.destinationPostalCode || addr.postalCode || ''}`);
-        doc.moveDown(1);
-
-        // Artículos
-        doc.font('Helvetica-Bold').fontSize(12).text('Artículos');
-        doc.moveDown(0.3);
-
-        // Tabla
-        doc.fontSize(10).font('Helvetica-Bold');
-        doc.text('Cant.', 50, doc.y, { width: 50 });
-        doc.text('Descripción', 100, doc.y, { width: 300 });
-        doc.text('Subtotal', 400, doc.y, { width: 100, align: 'right' });
-        doc.moveDown(0.3);
-        doc.font('Helvetica');
-
-        let subtotal = 0;
-        order.products.forEach((item) => {
-            const itemTotal = item.quantity * item.price;
-            subtotal += itemTotal;
-
-            doc.text(`${item.quantity}`, 50, doc.y, { width: 50 });
-            doc.text(`${item.product.name}`, 100, doc.y, { width: 300 });
-            doc.text(`$${itemTotal.toLocaleString('es-AR', { minimumFractionDigits: 0 })}`, 400, doc.y, { width: 100, align: 'right' });
-            doc.moveDown(0.2);
-        });
-
-        // Total
-        const total = subtotal;
-
-        doc.moveDown(1);
-        doc.fontSize(10);
-        doc.font('Helvetica-Bold').fontSize(12);
-        doc.text(`Total: $${total.toLocaleString('es-AR', { minimumFractionDigits: 0 })}`, 400, doc.y, { align: 'right' });
-
-        doc.moveDown(1);
-        doc.fontSize(9).font('Helvetica');
-
-        doc.moveDown();
-        doc.fontSize(9).text('Gracias por su compra.', { align: 'center' });
-
-        doc.end();
-
-        stream.on('finish', () => resolve(filePath));
-        stream.on('error', reject);
+  return new Promise((resolve, reject) => {
+    const dir = path.dirname(filePath);
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+    const LINE_WIDTH = 32;
+    const fullLine = (char = "*") => char.repeat(LINE_WIDTH);
+    const doc = new PDFDocument({ size: [200, 350], margin: 10 });
+    const stream = fs.createWriteStream(filePath);
+    doc.pipe(stream);
+    const center = { align: "center" };
+    const right = { align: "right" };
+    const left = { align: "left" };
+    doc.moveDown(2);
+    doc.font("Courier").fontSize(9);
+    doc.text(fullLine("*"), center);
+    doc.text("GP FOOTWEAR", center);
+    doc.text("Santa Fe, CP 3000", center);
+    doc.text(fullLine("*"), center);
+    doc.moveDown(0.5);
+    const date = new Date(order.createdAt).toLocaleString("es-AR");
+    doc.text(`Comprobante N° ${order._id.toString().slice(-6).toUpperCase()}`, center);
+    doc.text(`Fecha: ${date}`, center);
+    doc.moveDown(0.5);
+    doc.text(fullLine("-"), center);
+    const name = order.user
+      ? `${order.user.name?.first || ""} ${order.user.name?.last || ""}`.trim()
+      : order.guestName || "Cliente";
+    doc.text(`Cliente: ${name}`, left);
+    const address = order.shipping?.deliveryAddress || order.guestAddress || {};
+    doc.text(`Dirección: ${address.street || ""} ${address.number || ""}`.trim(), left);
+    if (address.city) doc.text(`Ciudad: ${address.city}`, left);
+    if (address.province) doc.text(`Provincia: ${address.province}`, left);
+    doc.moveDown(0.5);
+    doc.text(fullLine("-"), center);
+    let total = 0;
+    order.products.forEach((item) => {
+      const name = capitalizeWords(item.product.name);
+      const qty = item.quantity;
+      const price = item.price;
+      const itemTotal = qty * price;
+      total += itemTotal;
+      doc.text(`${qty} x ${name}`, left);
+      doc.text(`$${itemTotal.toFixed(2)}`, right);
     });
+    doc.text(fullLine("-"), center);
+    doc.font("Courier-Bold").text(`TOTAL: $${total.toFixed(2)}`, right);
+    doc.font("Courier").text(fullLine("-"), center);
+    doc.moveDown(1);
+    doc.text("¡Gracias por su compra!", center);
+    doc.text(fullLine("*"), center);
+    doc.moveDown(1);
+    const logoPath = path.resolve("assets", "logo.png");
+    if (fs.existsSync(logoPath)) {
+      const imageWidth = 50;
+      const x = doc.page.width / 2 - imageWidth / 2;
+      doc.image(logoPath, x, doc.y, { width: imageWidth });
+    }
+    doc.moveDown(2);
+    doc.end();
+    stream.on("finish", () => resolve(filePath));
+    stream.on("error", reject);
+  });
 };

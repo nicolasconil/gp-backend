@@ -67,7 +67,6 @@ export const updateOrder = async (id, updateData) => {
 
 export const getOrdersForShipping = async () => {
     return await Order.find({
-        status: 'pendiente',
-        shipping: { $exists: false }
+        status: { $nin: ['entregado', 'rechazado'] },
     }).populate(populateOptions);
 };

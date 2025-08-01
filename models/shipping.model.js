@@ -9,11 +9,11 @@ const ShippingSchema = new mongoose.Schema({
     shippingCost: {
         type: Number,
     },
-    shippingCarrier: {
+    carrier: {
         type: String,
         default: 'Correo Argentino'
     },
-    shippingMethod: {
+    method: {
         type: String,
         default: 'Estándar'
     },
@@ -78,5 +78,8 @@ ShippingSchema.pre('save', function (next) {
 });
 
 ShippingSchema.index({ order: 1 }, { unique: true });
+
+ShippingSchema.set("toObject", { virtuals: true });
+ShippingSchema.set("toJSON", { virtuals: true });
 
 export default mongoose.model('Shipping', ShippingSchema);

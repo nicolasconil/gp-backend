@@ -14,7 +14,8 @@ export const getShippingById = async (id) => {
 };
 
 export const getShippingOrderById = async (orderId) => {
-    return await Shipping.findOne({ order: orderId }).populate('order');
+    const shipping = await Shipping.findOne({ order: orderId }).populate('order');
+    return shipping;
 };
 
 export const updateShipping = async (id, updateData) => {

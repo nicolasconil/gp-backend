@@ -9,7 +9,7 @@ export const createStockMovement = async (data, session = null) => {
         (v) => v.size === size && v.color.toLowerCase() === color.toLowerCase()
     );
     if (!variation) throw new Error('Variación no encontrada.');
-    if (movementType === 'egreso' && variation.stock < quantity) {
+    if (movementType === 'venta' && variation.stock < quantity) {
         throw new Error(
             `Stock insuficiente para la variación (size: ${size}, color: ${color}). Solicitado: ${quantity}, disponible: ${variation.stock}`
         );
@@ -30,7 +30,12 @@ export const createStockMovement = async (data, session = null) => {
     );
     const delta = movementType === 'ingreso' ? quantity : -quantity;
     const result = await Product.updateOne(
-        { _id: productId, 'variations.size': size, 'variations.color': color },
+        { 
+            _id: productId, 
+            'variations.size': size, 
+            'variations.color': color,
+            ...(movementType  === 'venta' ? { 'variations.stock': { $gte: quantity } } : {})
+        },
         { $inc: { 'variations.$.stock': delta } },
         { session }
     );

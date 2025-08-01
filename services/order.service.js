@@ -4,6 +4,7 @@ import * as StockMovementRepository from "../repositories/stockMovement.reposito
 import * as ShippingService from "../services/shipping.service.js";
 import { generateInvoice } from "../utils/invoiceGenerator.js";
 import { sendOrderConfirmationEmail, sendShippingNotificationEmail, sendUpdateStatusEmail } from "../middleware/email.middleware.js";
+
 import path from "path";
 import crypto from "crypto";
 
@@ -14,10 +15,15 @@ export const create = async (orderData) => {
         session.startTransaction();
         const cancelToken = crypto.randomBytes(24).toString('hex');
         orderData.cancelToken = cancelToken;
+
         const order = await OrderRepository.createOrder(orderData, session);
         if (!order || !order._id) {
             throw new Error('No se pudo crear la orden, la orden es inválida.');
         }
+        const shipping = await ShippingService.createShippingForOrder(order._id, {}, session);
+        order.shipping = shipping._id;
+        await order.save({ session });
+        console.log("Order con shipping asociado:", order.shipping);
         for (const item of orderData.products) {
             await StockMovementRepository.createStockMovement(
                 {
@@ -103,23 +109,45 @@ export const updateFields = async (id, fields) => {
 };
 
 export const dispatchOrder = async (id, shippingTrackingNumber) => {
-    const updatedOrder = await OrderRepository.updateOrder(id, { status: 'enviado', 'shipping.shippingTrackingNumber': shippingTrackingNumber });
+    const order = await OrderRepository.getOrderById(id);
+    if (!order) {
+        throw new Error('Orden no encontrada.');
+    }
+    let shipping;
+    if (order.shipping) {
+        shipping = await ShippingService.getShippingById(order.shipping);
+        if (!shipping) {
+            throw new Error('El envío asociado no fue encontrado.');
+        }
+        shipping.trackingNumber = shippingTrackingNumber;
+        shipping.status = 'en camino';
+        await shipping.save();
+    } else {
+        shipping = await ShippingService.createShippingForOrder(order._id, {
+            trackingNumber: shippingTrackingNumber,
+            status: 'en camino',
+        });
+        order.shipping = shipping._id;
+    }
+    order.status = 'enviado';
+    await order.save();
     try {
-        const email = updatedOrder.guestEmail;
-        const name = updatedOrder.guestName || 'Cliente';
-        const carrier = updatedOrder.shipping?.shippingMethod || 'N/A';
+        const email = order.guestEmail;
+        const name = order.guestName || 'Cliente';
+        const carrier = shipping?.shippingMethod || 'N/A';
         if (email) {
             await sendShippingNotificationEmail(
                 email,
                 name,
-                updatedOrder._id,
+                order._id,
                 shippingTrackingNumber,
                 carrier
             );
         }
     } catch (error) {
-        throw new Error(`Error enviando email de despacho: ${error.message}`);
+        throw new Error(`Error enviando email de despacho: ${error.message}.`);
     }
+    const updatedOrder = await OrderRepository.getOrderById(order._id);
     return updatedOrder;
 };
 

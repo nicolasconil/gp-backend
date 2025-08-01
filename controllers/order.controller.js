@@ -131,7 +131,7 @@ export const updateOrderPayment = async (req, res) => {
 export const getOrdersForShipping = async (req, res) => {
     try {
         const orders = await OrderService.getOrdersForShipping();
-        logger.info(`GET /orders/for-shipping - ${orders.length} órdenes pendientes sin envíos obtenidas.`);
+        logger.info(`GET /orders/for-shipping - ${orders.length} órdenes no entregadas/rechazadas obtenidas.`);
         res.status(200).json(orders);
     } catch (error) {
         logger.error(`GET /orders/for-shipping - ${error.message}`);
