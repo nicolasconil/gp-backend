@@ -49,14 +49,34 @@ app.disable('x-powered-by');
 
 app.use(helmet());
 app.use((req, res, next) => {
-    res.setHeader('Content-Security-Policy', "default-src 'self'; img-src 'self' https://betagpfootwear.netlify.app http://localhost:3000; object-src 'none'; script-src 'self'; style-src 'self';");
+    res.setHeader('Content-Security-Policy',
+        "default-src 'self' https://betagpfootwear.netlify.app; img-src 'self' data: https:; script-src 'self' 'unsafe-inline' https://betagpfootwear.netlify.app; style-src 'self' 'unsafe-inline' https://betagpfootwear.netlify.app;"
+    );
     next();
 })
 
 app.use(compression());
+
+app.use(cors({
+    origin: function (origin, callback) {
+        const allowedOrigins = [
+            'https://betagpfootwear.netlify.app',
+            process.env.FRONTEND_URL
+        ];
+        if (!origin || allowedOrigins.includes(origin)) {
+            callback(null, true);
+        } else {
+            callback(new Error('No permitido por CORS'));
+        }
+    },
+    credentials: true
+}));
+
 app.use(cookieParser());
 app.use(express.json({ limit: '10kb' }));
 app.use(express.urlencoded({ extended: true }));
+
+app.use(csrfMiddleware);
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename);
@@ -67,28 +87,12 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads'), {
     }
 }));
 
-app.use(csrfMiddleware);
 
 if (process.env.NODE_ENV === 'development') {
     app.use(morgan('dev'));
 } else {
     app.use(morgan('combined'));
 }
-
-app.use(cors({
-    origin: function (origin, callback) {
-        const allowedOrigins = [
-            'https://betagpfootwear.netlify.app',
-            process.env.FRONTEND_URL 
-        ];
-        if (!origin || allowedOrigins.includes(origin)) {
-            callback(null, true);
-        } else {
-            callback(new Error('No permitido por CORS'));
-        }
-    },
-    credentials: true 
-}));
 
 app.use('/assets', express.static('assets'));
 
