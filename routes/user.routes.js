@@ -1,7 +1,7 @@
 import express from "express";
 import * as UserController from "../controllers/user.controller.js";
 import * as AuthMiddleware from "../middleware/auth.middleware.js";
-import { csrfMiddleware } from "../middleware/csrf.middleware.js";
+import { csrfProtection, addCsrfToken } from "../middleware/csrf.middleware.js";
 
 const router = express.Router();
 
@@ -10,20 +10,20 @@ router.use(AuthMiddleware.verifyToken); // verifica el token para todas las sigu
 
 // rutas de usuario
 router.get('/me', UserController.getUserById);
-router.put('/me', csrfMiddleware, UserController.updateUser);
-router.delete('/me', csrfMiddleware, UserController.deleteAccount);
+router.put('/me', csrfProtection, addCsrfToken, UserController.updateUser);
+router.delete('/me', csrfProtection, addCsrfToken, UserController.deleteAccount);
 
 // rutas del moderador y administrador
 router.use(AuthMiddleware.verifyModerator);
 
 // administración de usuarios
 router.get('/', UserController.getAllUsers);
-router.put('/:id', csrfMiddleware, UserController.updateUser);
+router.put('/:id', csrfProtection, addCsrfToken, UserController.updateUser);
 
 // rutas del administrador
 router.use(AuthMiddleware.verifyAdmin);
 
 // administración de usuarios
-router.delete('/:id', csrfMiddleware, UserController.deleteUser);
+router.delete('/:id', csrfProtection, addCsrfToken, UserController.deleteUser);
 
 export default router;
