@@ -1,6 +1,7 @@
 import express from "express";
 import * as AuthController from "../controllers/auth.controller.js"
 import { csrfProtection, addCsrfToken } from "../middleware/csrf.middleware.js";
+import { verifyToken } from "../middleware/auth.middleware.js";
 
 const router = express.Router();
 
@@ -15,5 +16,7 @@ router.post('/forgot-password', csrfProtection, addCsrfToken, AuthController.req
 router.post('/reset-password', csrfProtection, addCsrfToken, AuthController.resetPassword);
 
 router.post('/create-user', AuthController.createUser);
+
+router.get('/users/me', verifyToken, AuthController.getUserProfile);
 
 export default router;

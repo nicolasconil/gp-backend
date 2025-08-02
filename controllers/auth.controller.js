@@ -124,3 +124,20 @@ export const resetPassword = async (req, res) => {
         res.status(400).json({ error: error.message });
     }
 };
+
+export const getUserProfile = (req, res) => {
+    try {
+        if (!req.user || !req.user.id) {
+            return res.status(403).json({ message: 'Acceso denegado: token no proporcionado o inválido.' });
+        }
+        return res.status(200).json({
+            id: req.user.id,
+            email: req.user.email,
+            role: req.user.role,
+            isEmailVerified: req.user.isEmailVerified
+        });
+    } catch (error) {
+        logger.error(`GET /users/me - ${error.message}`);
+        return res.status(500).json({ message: 'Error al obtener el perfil del usuario.' });
+    }
+};
