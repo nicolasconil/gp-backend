@@ -76,17 +76,21 @@ if (process.env.NODE_ENV === 'development') {
     app.use(morgan('combined'));
 }
 
+// app.use(cors({
+//     origin: function (origin, callback) {
+//         console.log("Origin: ", origin);
+//         if (!origin || allowedOrigins.includes(origin)) {
+//             return callback(null, true);
+//         }
+//         return callback(new Error('Not allowed by CORS'));
+//     },
+//     credentials: true
+// }));
+
 app.use(cors({
-    origin: function (origin, callback) {
-        console.log("Origin: ", origin);
-        if (!origin || allowedOrigins.includes(origin)) {
-            return callback(null, true);
-        }
-        return callback(new Error('Not allowed by CORS'));
-    },
+    origin: allowedOrigins,
     credentials: true
 }));
-
 
 app.use('/assets', express.static('assets'));
 
