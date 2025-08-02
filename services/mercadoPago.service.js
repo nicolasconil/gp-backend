@@ -22,7 +22,7 @@ export const createPreference = async (order) => {
             pending: `https://x.com/nnicolasconil`,
         },
         auto_return: 'approved',
-        notification_url: 'https://e28bb71abb7b.ngrok-free.app/api/mercadopago/webhook?source_news=webhooks',
+        notification_url: 'https://6f022fc74a3b.ngrok-free.app/api/mercadopago/webhook?source_news=webhooks',
         external_reference: order._id,
         payer: {
             email: order.user?.email || order.guestEmail || 'invitado@example'

@@ -193,20 +193,20 @@ export const sendOrderRejectedEmailTemplate = (order) => {
   };
 };
 
-// export const promoEmailTemplate = (subject, content) => `
-//   <html>
-//     <body style="font-family: Arial, sans-serif; background-color: #f8f8f8; margin: 0; padding: 40px;">
-//       <div style="max-width: 600px; margin: auto; background-color: white; padding: 30px; border-radius: 8px; box-shadow: 0 5px 15px rgba(0,0,0,0.1);">
-//         <img src="https://i.imgur.com/xPXwqNk.png" alt="GP Footwear Logo" style="width: 120px; display: block; margin: 0 auto 20px;" />
-//         <h2 style="color: #2c3e50; text-align: center;">${subject}</h2>
-//         <div style="padding: 20px; font-size: 16px; line-height: 1.6; color: #333;">
-//           ${content}
-//         </div>
-//         <footer style="text-align: center; margin-top: 20px; font-size: 12px;">
-//           <p style="color: #7f8c8d;">Gracias por ser parte de nuestra comunidad.</p>
-//           <p style="color: #7f8c8d;">Si no deseas recibir más promociones, podés darte de baja.</p>
-//         </footer>
-//       </div>
-//     </body>
-//   </html>
-// `;
+export const promoEmailTemplate = (subject, content) => `
+  <html>
+    <body style="font-family: Arial, sans-serif; background-color: #f8f8f8; margin: 0; padding: 40px;">
+      <div style="max-width: 600px; margin: auto; background-color: white; padding: 30px; border-radius: 8px; box-shadow: 0 5px 15px rgba(0,0,0,0.1);">
+        <img src="https://i.imgur.com/xPXwqNk.png" alt="GP Footwear Logo" style="width: 120px; display: block; margin: 0 auto 20px;" />
+        <h2 style="color: #2c3e50; text-align: center;">${subject}</h2>
+        <div style="padding: 20px; font-size: 16px; line-height: 1.6; color: #333;">
+          ${content}
+        </div>
+        <footer style="text-align: center; margin-top: 20px; font-size: 12px;">
+          <p style="color: #7f8c8d;">Gracias por ser parte de nuestra comunidad.</p>
+          <p style="color: #7f8c8d;">Si no deseas recibir más promociones, podés darte de baja.</p>
+        </footer>
+      </div>
+    </body>
+  </html>
+`;

@@ -9,6 +9,6 @@ const router = express.Router();
 router.use(AuthMiddleware.verifyModerator);
 
 // ruta para enviar la promocion del newsletter
-router.post('/', csrfMiddleware, PromotionController.sendPromotions);
+router.post('/', csrfMiddleware, PromotionController.sendPromotionalEmail);
 
 export default router;
