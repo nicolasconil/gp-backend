@@ -13,7 +13,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
 
-import { limiter } from "./middleware/ratelimit.middleware.js"; 
+import { limiter } from "./middleware/ratelimit.middleware.js";
 
 import { requestLogger } from "./middleware/requestLogger.middleware.js";
 
@@ -32,8 +32,15 @@ import authRoutes from "./routes/auth.routes.js";
 
 const app = express();
 
+app.use((req, res, next) => {
+    if (process.env.NODE_ENV === 'production' && req.headers["x-forwarded-proto"] !== "https") {
+        return res.redirect("https://" + req.headers.host + req.url);
+    }
+    next();
+});
+
 const port = process.env.PORT || 3000;
-const mongodb = process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/backend-gp";
+const mongodbUri = process.env.MONGODB_URI ?? "mongodb://127.0.0.1:27017/backend-gp";
 const allowedOrigins = [process.env.FRONTEND_URL];
 
 app.set('trust proxy', 1);
@@ -41,7 +48,7 @@ app.disable('x-powered-by');
 
 app.use(helmet());
 app.use((req, res, next) => {
-    res.setHeader('Content-Security-Policy', "default-src 'self; img-src 'self http://localhost:3000; object-src 'none'; script-src 'self'; style-src 'self';");
+    res.setHeader('Content-Security-Policy', "default-src 'self'; img-src 'self' http://localhost:3000; object-src 'none'; script-src 'self'; style-src 'self';");
     next();
 })
 
@@ -59,7 +66,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads'), {
     }
 }));
 
-// app.use(csrfProtection);
+app.use(csrfProtection);
 
 if (process.env.NODE_ENV === 'development') {
     app.use(morgan('dev'));
@@ -67,21 +74,17 @@ if (process.env.NODE_ENV === 'development') {
     app.use(morgan('combined'));
 }
 
-// app.use(cors({
-//     origin: function (origin, callback) {
-//         console.log("Origin: ", origin);
-//         if (!origin || allowedOrigins.includes(origin)) {
-//             return callback(null, true);
-//         }
-//         return callback(new Error('Not allowed by CORS'));
-//     },
-//     credentials: true
-// }));
-
 app.use(cors({
-    origin: [process.env.FRONTEND_URL],
+    origin: function (origin, callback) {
+        console.log("Origin: ", origin);
+        if (!origin || allowedOrigins.includes(origin)) {
+            return callback(null, true);
+        }
+        return callback(new Error('Not allowed by CORS'));
+    },
     credentials: true
 }));
+
 
 app.use('/assets', express.static('assets'));
 
@@ -117,9 +120,12 @@ app.use((err, req, res, next) => {
     });
 });
 
-mongoose.connect(mongodb)
-    .then(() => console.log("MongoDB connected to GP Footwear."))
-    .catch(error => console.error("Connection error: ", error));
+mongoose.connect(mongodbUri, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true
+})
+    .then(() => console.log("✅ Conexión a MongoDB exitosa"))
+    .catch((err) => console.error("❌ Error al conectar a MongoDB:", err));
 
 
 app.listen(port, () => {
