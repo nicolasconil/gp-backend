@@ -76,8 +76,6 @@ app.use(cookieParser());
 app.use(express.json({ limit: '10kb' }));
 app.use(express.urlencoded({ extended: true }));
 
-app.use(csrfMiddleware);
-
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename);
 app.use('/uploads', express.static(path.join(__dirname, 'uploads'), {

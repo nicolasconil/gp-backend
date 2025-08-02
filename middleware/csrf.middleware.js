@@ -27,5 +27,3 @@ export const addCsrfToken = (req, res, next) => {
         return res.status(403).json({ message: 'No se pudo generar el token CSRF.' });
     }
 };
-
-export const csrfMiddleware = [csrfProtection, addCsrfToken];
