@@ -9,6 +9,8 @@ import helmet from "helmet";
 import compression from "compression";
 import morgan from "morgan";
 
+import { csrfMiddleware } from "./middleware/csrf.middleware.js";
+
 import path from "path";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
@@ -66,7 +68,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads'), {
     }
 }));
 
-app.use(csrfProtection);
+app.use(csrfMiddleware);
 
 if (process.env.NODE_ENV === 'development') {
     app.use(morgan('dev'));
