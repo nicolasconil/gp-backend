@@ -16,7 +16,8 @@ export const addCsrfToken = (req, res, next) => {
         const token = req.csrfToken();
         res.cookie('XSRF-TOKEN', token, {
             sameSite: 'lax',
-            secure: process.env.NODE_ENV === 'production'
+            secure: process.env.NODE_ENV === 'production',
+            httpOnly: false
         });
         console.log('CSRF Token generado: ', token);
         res.locals.csrfToken = token;

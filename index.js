@@ -43,7 +43,6 @@ app.use((req, res, next) => {
 
 const port = process.env.PORT || 3000;
 const mongodbUri = process.env.MONGODB_URI ?? "mongodb://127.0.0.1:27017/backend-gp";
-const allowedOrigins = [process.env.FRONTEND_URL, 'https://betagpfootwear.netlify.app'];
 
 app.set('trust proxy', 1);
 app.disable('x-powered-by');
@@ -78,14 +77,18 @@ if (process.env.NODE_ENV === 'development') {
 
 app.use(cors({
     origin: function (origin, callback) {
-        console.log("Origin: ", origin);
+        const allowedOrigins = [
+            'https://betagpfootwear.netlify.app',
+            process.env.FRONTEND_URL 
+        ];
         if (!origin || allowedOrigins.includes(origin)) {
-            return callback(null, true);
+            callback(null, true);
+        } else {
+            callback(new Error('No permitido por CORS'));
         }
-        return callback(new Error('Not allowed by CORS'));
     },
-    credentials: true
- }));
+    credentials: true 
+}));
 
 app.use('/assets', express.static('assets'));
 
