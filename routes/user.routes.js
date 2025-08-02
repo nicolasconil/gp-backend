@@ -5,9 +5,9 @@ import { csrfProtection, addCsrfToken } from "../middleware/csrf.middleware.js";
 
 const router = express.Router();
 
+router.get('/me', AuthMiddleware.verifyToken, csrfProtection, addCsrfToken, UserController.getUserById);
 // rutas protegidas
 router.use(AuthMiddleware.verifyToken); // verifica el token para todas las siguientes rutas
-router.get('/me', csrfProtection, addCsrfToken, UserController.getUserById);
 
 // rutas de usuario
 router.put('/me', csrfProtection, addCsrfToken, UserController.updateUser);
