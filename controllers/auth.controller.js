@@ -28,24 +28,28 @@ export const login = async (req, res) => {
     try {
         const { email, password } = req.body;
         const lowerEmail = email?.toLowerCase();
-
         const { token, refreshToken, userId, role } = await AuthService.authenticateUser(lowerEmail, password);
         logger.info(`/POST /login - Usuario ${userId} autenticado correctamente.`);
-
-        res.cookie('token', token, {
+        const cookieOptions = {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
-            sameSite: 'Lax',
+            sameSite: 'None',
+        };
+        res.cookie('token', token, {
+            ...cookieOptions,
             maxAge: 60 * 60 * 1000 // 1 hora
         });
-
         res.cookie('refreshToken', refreshToken, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'Lax',
+            ...cookieOptions,
             maxAge: 7 * 24 * 60 * 60 * 1000 // 7 días
         });
-
+        if (typeof req.csrfToken === 'function') {
+            res.cookie('XSRF-TOKEN', req.csrfToken(), {
+                httpOnly: false,
+                secure: process.env.NODE_ENV === 'production',
+                sameSite: 'None',
+            });
+        }
         res.status(200).json({ message: 'Inicio de sesión exitoso.', role });
     } catch (error) {
         logger.error(`/POST /login - ${error.message}`);
@@ -54,8 +58,14 @@ export const login = async (req, res) => {
 };
 
 export const logout = (req, res) => {
-    res.clearCookie('token');
-    res.clearCookie('refreshToken');
+    const options = {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'None',
+    };
+    res.clearCookie('token', options);
+    res.clearCookie('refreshToken', options);
+    res.clearCookie('XSRF-TOKEN', { ...options, httpOnly: false });
     logger.info(`POST /logout - Usuario deslogueado.`);
     res.status(200).json({ message: 'Sesión cerrada correctamente.' });
 };
@@ -66,22 +76,18 @@ export const refreshAccessToken = (req, res) => {
         if (!refreshToken) {
             return res.status(401).json({ message: 'No se proporcionó refresh token.' });
         }
-
         const decoded = jwt.verify(refreshToken, refreshSecretKey);
-
         const newAccessToken = jwt.sign({
             id: decoded.id,
             role: decoded.role,
             isEmailVerified: decoded.isEmailVerified
         }, process.env.SECRET_KEY, { expiresIn: '1h' });
-
         res.cookie('token', newAccessToken, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
-            sameSite: 'Lax',
-            maxAge: 60 * 60 * 1000 // 1 hora
+            sameSite: 'None',
+            maxAge: 60 * 60 * 1000 
         });
-
         res.status(200).json({ message: 'Token actualizado.' });
     } catch (error) {
         logger.error(`POST /refresh-token - ${error.message}.`);
