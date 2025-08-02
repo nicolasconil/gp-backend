@@ -50,7 +50,7 @@ app.disable('x-powered-by');
 
 app.use(helmet());
 app.use((req, res, next) => {
-    res.setHeader('Content-Security-Policy', "default-src 'self'; img-src 'self' http://localhost:3000; object-src 'none'; script-src 'self'; style-src 'self';");
+    res.setHeader('Content-Security-Policy', "default-src 'self'; img-src 'self' https://betagpfootwear.netlify.app http://localhost:3000; object-src 'none'; script-src 'self'; style-src 'self';");
     next();
 })
 
@@ -75,17 +75,6 @@ if (process.env.NODE_ENV === 'development') {
 } else {
     app.use(morgan('combined'));
 }
-
-// app.use(cors({
-//     origin: function (origin, callback) {
-//         console.log("Origin: ", origin);
-//         if (!origin || allowedOrigins.includes(origin)) {
-//             return callback(null, true);
-//         }
-//         return callback(new Error('Not allowed by CORS'));
-//     },
-//     credentials: true
-// }));
 
 app.use(cors({
     origin: allowedOrigins,
