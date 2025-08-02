@@ -7,7 +7,7 @@ const router = express.Router();
 
 // rutas protegidas
 router.use(AuthMiddleware.verifyToken); // verifica el token para todas las siguientes rutas
-router.get('/me', UserController.getUserById);
+router.get('/me', csrfProtection, addCsrfToken, UserController.getUserById);
 
 // rutas de usuario
 router.put('/me', csrfProtection, addCsrfToken, UserController.updateUser);
