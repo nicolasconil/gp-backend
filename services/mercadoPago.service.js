@@ -22,7 +22,7 @@ export const createPreference = async (order) => {
             pending: `https://www.instagram.com/facumillesimo_/`,
         },
         auto_return: 'approved',
-        notification_url: 'https://gp-backend.onrender.com/api/mercadopago/webhook?source_news=webhooks',
+        notification_url: 'https://gp-backend-f7dk.onrender.com/api/mercadopago/webhook?source_news=webhooks',
         external_reference: order._id,
         payer: {
             email: order.user?.email || order.guestEmail || 'invitado@example'
