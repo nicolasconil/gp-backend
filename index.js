@@ -55,19 +55,23 @@ app.use((req, res, next) => {
 
 app.use(compression());
 
+const allowedOrigins = [
+  'https://betagpfootwear.netlify.app',
+  process.env.FRONTEND_URL
+];
+
 app.use(cors({
-    origin: function (origin, callback) {
-        const allowedOrigins = [
-            'https://betagpfootwear.netlify.app',
-            process.env.FRONTEND_URL
-        ];
-        if (!origin || allowedOrigins.includes(origin)) {
-            callback(null, true);
-        } else {
-            callback(new Error('No permitido por CORS'));
-        }
-    },
-    credentials: true
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      console.warn("❌ CORS bloqueado para origen:", origin);
+      callback(new Error("No permitido por CORS"));
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-CSRF-Token'],
 }));
 
 app.use(cookieParser());
