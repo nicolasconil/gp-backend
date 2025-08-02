@@ -17,12 +17,12 @@ export const createPreference = async (order) => {
     const preference = {
         items,
         back_urls: {
-            success: `https://www.instagram.com/nicooconil/`,
-            failure: `https://x.com/nnicolasconil`,
-            pending: `https://x.com/nnicolasconil`,
+            success: `https://www.instagram.com/gp.footwear/`,
+            failure: `https://www.tiktok.com/@gpfootwear`,
+            pending: `https://www.instagram.com/facumillesimo_/`,
         },
         auto_return: 'approved',
-        notification_url: 'https://6f022fc74a3b.ngrok-free.app/api/mercadopago/webhook?source_news=webhooks',
+        notification_url: 'https://gp-backend.onrender.com/api/mercadopago/webhook?source_news=webhooks',
         external_reference: order._id,
         payer: {
             email: order.user?.email || order.guestEmail || 'invitado@example'
