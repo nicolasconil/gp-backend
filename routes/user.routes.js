@@ -5,11 +5,11 @@ import { csrfProtection, addCsrfToken } from "../middleware/csrf.middleware.js";
 
 const router = express.Router();
 
+router.get('/me', UserController.getUserById);
 // rutas protegidas
 router.use(AuthMiddleware.verifyToken); // verifica el token para todas las siguientes rutas
 
 // rutas de usuario
-router.get('/me', UserController.getUserById);
 router.put('/me', csrfProtection, addCsrfToken, UserController.updateUser);
 router.delete('/me', csrfProtection, addCsrfToken, UserController.deleteAccount);
 

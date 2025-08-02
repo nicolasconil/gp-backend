@@ -23,14 +23,7 @@ export const generateRefreshToken = (userId) => {
 };
 
 export const verifyToken = (req, res, next) => {
-    const cookieToken = req.cookies?.token;
-    const headerAuth = req.header('Authorization');
-    let token = null;
-    if (cookieToken) {
-        token = cookieToken;
-    } else if (headerAuth && headerAuth.startsWith('Bearer ')) {
-        token = headerAuth.split(' ')[1];
-    }
+    const token = req.cookies?.token;
     if (!token) {
         return res.status(403).json({ message: 'Acceso denegado: token no proporcionado.' });
     }
