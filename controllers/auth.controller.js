@@ -125,16 +125,20 @@ export const resetPassword = async (req, res) => {
     }
 };
 
-export const getUserProfile = (req, res) => {
+export const getUserProfile = async (req, res) => {
     try {
         if (!req.user || !req.user.id) {
             return res.status(403).json({ message: 'Acceso denegado: token no proporcionado o inválido.' });
         }
+        const user = await User.findById(req.user.id).select('email role isEmailVerified');
+        if (!user) {
+            return res.status(404).json({ message: 'Usuario no encontrado.' });
+        }
         return res.status(200).json({
-            id: req.user.id,
-            email: req.user.email,
-            role: req.user.role,
-            isEmailVerified: req.user.isEmailVerified
+            id: user._id,
+            email: user.email,
+            role: user.role,
+            isEmailVerified: user.isEmailVerified
         });
     } catch (error) {
         logger.error(`GET /users/me - ${error.message}`);
