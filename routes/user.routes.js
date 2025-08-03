@@ -1,8 +1,10 @@
 import express from "express";
 import * as UserController from "../controllers/user.controller.js";
 import * as AuthMiddleware from "../middleware/auth.middleware.js";
+import { csrfProtection, addCsrfToken } from "../middleware/csrf.middleware.js";
 
 const router = express.Router();
+
 
 // rutas protegidas
 router.use(AuthMiddleware.verifyToken); // verifica el token para todas las siguientes rutas
