@@ -16,4 +16,6 @@ router.post('/reset-password', csrfProtection, addCsrfToken, AuthController.rese
 
 router.post('/create-user', AuthController.createUser);
 
+router.get('/users/me', AuthMiddleware.verifyToken, AuthController.getUserProfile);
+
 export default router;
