@@ -6,7 +6,8 @@ export const csrfProtection = csurf({
         key: 'XSRF-TOKEN',
         httpOnly: false, 
         secure: process.env.NODE_ENV === 'production',
-        sameSite: 'None'
+        sameSite: 'None',
+        path: "/"
     }
 });
 
