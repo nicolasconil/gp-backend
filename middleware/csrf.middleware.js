@@ -13,11 +13,12 @@ export const csrfProtection = csurf({
 // middleware para generar y pasar el token al cliente
 export const addCsrfToken = (req, res, next) => {
   try {
-    const token = req.csrfToken();
-    console.log('CSRF Token generado: ', token);
-    res.status(200).json({ csrfToken: token });
+    if (typeof req.csrfToken === 'function') {
+      res.locals.csrfToken = req.csrfToken(); 
+    }
+    next(); 
   } catch (error) {
-    console.error('Error generando CSRF token: ', error);
+    console.error('Error generando CSRF token:', error);
     return res.status(403).json({ message: 'No se pudo generar el token CSRF.' });
   }
 };

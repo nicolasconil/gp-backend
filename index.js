@@ -116,7 +116,7 @@ app.use('/api/mercadopago', mercadoPagoRoutes);
 app.use('/api/promotions', promotionRoutes);
 app.use('/api/newsletter', newsletterRoutes);
 
-app.use('/api', csrfRoutes);
+app.use('/api/auth', csrfRoutes);
 app.use('/api/auth', authRoutes);
 
 app.get('/', (req, res) => {
