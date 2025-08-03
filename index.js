@@ -106,8 +106,6 @@ app.use('/assets', express.static('assets'));
 app.use('/', limiter);
 app.use(requestLogger);
 
-app.options('*', cors());
-
 app.use('/api/users', userRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/orders', orderRoutes);
