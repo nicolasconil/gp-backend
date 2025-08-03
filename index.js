@@ -56,26 +56,30 @@ app.use((req, res, next) => {
 app.use(compression());
 
 const allowedOrigins = [
-  'https://betagpfootwear.netlify.app',
-  process.env.FRONTEND_URL
+    'https://betagpfootwear.netlify.app',
+    process.env.FRONTEND_URL
 ];
 
-const corsOptions = {
-  origin: 'https://betagpfootwear.netlify.app', // 👈 origen explícito
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: [
-    'Content-Type',
-    'Authorization',
-    'X-XSRF-TOKEN',
-    'XSRF-TOKEN',
-    'x-xsrf-token',
-    'xsrf-token'
-  ],
-  optionsSuccessStatus: 200 // 👈 para evitar errores con algunos navegadores
-};
-
-app.use(cors(corsOptions));
+app.use(cors({
+    origin: (origin, callback) => {
+        if (!origin || allowedOrigins.includes(origin)) {
+            callback(null, true);
+        } else {
+            console.warn("❌ CORS bloqueado para origen:", origin);
+            callback(new Error("No permitido por CORS"));
+        }
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: [
+        'Content-Type',
+        'Authorization',
+        'X-XSRF-TOKEN',
+        'XSRF-TOKEN',
+        'x-xsrf-token',
+        'xsrf-token'
+    ],
+}));
 
 app.use(cookieParser());
 app.use(express.json({ limit: '10kb' }));
@@ -102,7 +106,7 @@ app.use('/assets', express.static('assets'));
 app.use('/', limiter);
 app.use(requestLogger);
 
-app.options('*', cors(corsOptions));
+app.options('*', cors());
 
 app.use('/api/users', userRoutes);
 app.use('/api/products', productRoutes);
