@@ -12,9 +12,8 @@ export const authenticateUser = async (email, password) => {
     }
     const valid = await bcrypt.compare(password, user.password);
     if (!valid) throw new Error('Contraseña incorrecta.');
-
     const token = generateToken(user._id, user.role, true);
-    const refreshToken = generateRefreshToken(user._id, user.role);
+    const refreshToken = generateRefreshToken(user._id, user.role, true);
     return { token, refreshToken, userId: user._id, role: user.role };
 };
 

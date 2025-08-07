@@ -1,7 +1,7 @@
 import express from "express";
 import * as CatalogController from "../controllers/catalog.controller.js";
 import * as AuthMiddleware from "../middleware/auth.middleware.js";
-import { csrfProtection, addCsrfToken } from "../middleware/csrf.middleware.js";
+import { csrfProtection } from "../middleware/csrf.middleware.js";
 
 const router = express.Router();
 
@@ -15,10 +15,10 @@ router.use(AuthMiddleware.verifyToken);
 router.use(AuthMiddleware.verifyModerator);
 
 // crear catálogo
-router.post('/', csrfProtection, addCsrfToken, CatalogController.createCatalog);
+router.post('/', csrfProtection, CatalogController.createCatalog);
 // actualizar catálogo
-router.patch('/:id', csrfProtection, addCsrfToken, CatalogController.updateCatalog);
+router.patch('/:id', csrfProtection, CatalogController.updateCatalog);
 // eliminar catálogo
-router.delete('/:id', csrfProtection, addCsrfToken, CatalogController.deleteCatalog);
+router.delete('/:id', csrfProtection, CatalogController.deleteCatalog);
 
 export default router;

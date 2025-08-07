@@ -16,8 +16,8 @@ export const generateToken = (userId, role, isEmailVerified) => {
     });
 };
 
-export const generateRefreshToken = (userId) => {
-    return jwt.sign({ id: userId }, refreshSecretKey, {
+export const generateRefreshToken = (userId, role, isEmailVerified) => {
+    return jwt.sign({ id: userId, role, isEmailVerified }, refreshSecretKey, {
         expiresIn: '7d',
     })
 };
