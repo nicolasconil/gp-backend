@@ -59,14 +59,13 @@ export const create = async (req, res) => {
       try {
         variations = JSON.parse(req.body.variations);
       } catch (err) {
-        console.error("Error al parsear variations:", err.message);
         return res.status(400).json({ message: "Variaciones mal formateadas." });
       }
     }
     if (!variations || !Array.isArray(variations) || variations.length === 0) {
       return res.status(400).json({ message: "Debe incluir al menos una variación." });
     }
-    const image = req.file ? `/uploads/${req.file.filename}` : null;
+    const image = req.file ? req.file.path : null;
     const newProduct = await ProductService.create({
       name, brand, price, description,
       gender, catalog, isActive,
@@ -74,7 +73,6 @@ export const create = async (req, res) => {
     });
     res.status(201).json(newProduct);
   } catch (err) {
-    console.error("Error al crear producto:", err.message);
     res.status(500).json({ message: "Error interno del servidor." });
   }
 };
@@ -86,11 +84,7 @@ export const update = async (req, res) => {
     if (!product) {
       return res.status(404).json({ message: 'Producto no encontrado.' });
     }
-    if (req.file) {
-      req.body.image = `/uploads/${req.file.filename}`;
-    } else {
-      req.body.image = product.image;
-    }
+    req.body.image = req.file ? req.file.path : product.image;
     if (req.body.variations && typeof req.body.variations === 'string') {
       try {
         req.body.variations = JSON.parse(req.body.variations);

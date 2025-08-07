@@ -87,13 +87,6 @@ app.use(express.urlencoded({ extended: true }));
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename);
-app.use('/uploads', express.static(path.join(__dirname, 'uploads'), {
-    setHeaders: (res) => {
-        res.set('Cross-Origin-Resource-Policy', 'cross-origin');
-        res.set('Cross-Origin-Opener-Policy', 'same-origin');
-    }
-}));
-
 
 if (process.env.NODE_ENV === 'development') {
     app.use(morgan('dev'));
