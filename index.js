@@ -14,6 +14,7 @@ import { fileURLToPath } from "url";
 import { dirname } from "path";
 
 import { limiter } from "./middleware/ratelimit.middleware.js";
+
 import { requestLogger } from "./middleware/requestLogger.middleware.js";
 
 import userRoutes from "./routes/user.routes.js";
@@ -32,64 +33,74 @@ import authRoutes from "./routes/auth.routes.js";
 const app = express();
 
 app.use((req, res, next) => {
-  if (
-    process.env.NODE_ENV === 'production' &&
-    req.headers['x-forwarded-proto'] !== 'https'
-  ) {
-    return res.redirect('https://' + req.headers.host + req.url);
-  }
-  next();
+    if (process.env.NODE_ENV === 'production' && req.headers["x-forwarded-proto"] !== "https") {
+        return res.redirect("https://" + req.headers.host + req.url);
+    }
+    next();
 });
+
+const port = process.env.PORT || 3000;
+const mongodbUri = process.env.MONGODB_URI ?? "mongodb://127.0.0.1:27017/backend-gp";
+
+app.set('trust proxy', 1);
+app.disable('x-powered-by');
 
 app.use(helmet());
 app.use((req, res, next) => {
-  res.setHeader(
-    'Content-Security-Policy',
-    "default-src 'self' https://betagpfootwear.netlify.app; img-src 'self' data: https:; script-src 'self' 'unsafe-inline' https://betagpfootwear.netlify.app; style-src 'self' 'unsafe-inline' https://betagpfootwear.netlify.app;"
-  );
-  next();
-});
+    res.setHeader('Content-Security-Policy',
+        "default-src 'self' https://betagpfootwear.netlify.app; img-src 'self' data: https:; script-src 'self' 'unsafe-inline' https://betagpfootwear.netlify.app; style-src 'self' 'unsafe-inline' https://betagpfootwear.netlify.app;"
+    );
+    next();
+})
 
 app.use(compression());
 
 const allowedOrigins = [
-  'https://betagpfootwear.netlify.app',
-  process.env.FRONTEND_URL
+    'https://betagpfootwear.netlify.app',
+    process.env.FRONTEND_URL
 ];
 
-const corsOptions = {
-  origin: (origin, callback) => {
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      console.warn('❌ CORS blocked for origin:', origin);
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-XSRF-TOKEN']
-};
-
-app.use(cors(corsOptions));
-app.options('*', cors(corsOptions));
+app.use(cors({
+    origin: (origin, callback) => {
+        if (!origin || allowedOrigins.includes(origin)) {
+            callback(null, true);
+        } else {
+            console.warn("❌ CORS bloqueado para origen:", origin);
+            callback(new Error("No permitido por CORS"));
+        }
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: [
+        'Content-Type',
+        'Authorization',
+        'X-XSRF-TOKEN',
+        'XSRF-TOKEN',
+        'x-xsrf-token',
+        'xsrf-token'
+    ],
+}));
 
 app.use(cookieParser());
 app.use(express.json({ limit: '10kb' }));
 app.use(express.urlencoded({ extended: true }));
 
-const __filename = fileURLToPath(import.meta.url);
+const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename);
+
 if (process.env.NODE_ENV === 'development') {
-  app.use(morgan('dev'));
+    app.use(morgan('dev'));
 } else {
-  app.use(morgan('combined'));
+    app.use(morgan('combined'));
 }
 
 app.use('/assets', express.static('assets'));
 
 app.use('/', limiter);
 app.use(requestLogger);
+
+app.use('/api/auth', csrfRoutes);
+app.use('/api/auth', authRoutes);
 
 app.use('/api/users', userRoutes);
 app.use('/api/products', productRoutes);
@@ -101,32 +112,31 @@ app.use('/api/mercadopago', mercadoPagoRoutes);
 app.use('/api/promotions', promotionRoutes);
 app.use('/api/newsletter', newsletterRoutes);
 
-app.use('/api/auth', csrfRoutes);
-app.use('/api/auth', authRoutes);
 
 app.get('/', (req, res) => {
-  res.send("Backend GP Footwear funcionando.");
+    res.send("Backend GP Footwear funcionando.");
 });
 
-app.use((req, res) => {
-  res.status(404).json({ message: 'Ruta no encontrada.' });
+app.use((req, res, next) => {
+    res.status(404).json({ message: 'Ruta no encontrada.' });
 });
 
 app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({
-    message: 'Error interno del servidor',
-    error: err.message
-  });
+    console.error(err.stack);
+    res.status(500).json({
+        message: 'Error interno del servidor',
+        error: err.message
+    });
 });
 
-mongoose
-  .connect(process.env.MONGODB_URI ?? 'mongodb://127.0.0.1:27017/backend-gp', {
+mongoose.connect(mongodbUri, {
     useNewUrlParser: true,
     useUnifiedTopology: true
-  })
-  .then(() => console.log('✅ Conexión a MongoDB exitosa'))
-  .catch((err) => console.error('❌ Error al conectar a MongoDB:', err));
+})
+    .then(() => console.log("✅ Conexión a MongoDB exitosa"))
+    .catch((err) => console.error("❌ Error al conectar a MongoDB:", err));
 
-const port = process.env.PORT || 3000;
-app.listen(port, () => console.log(`Server is running on port ${port}.`));
+
+app.listen(port, () => {
+    console.log(`Server is running in port ${port}.`);
+});

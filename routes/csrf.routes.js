@@ -4,8 +4,13 @@ import { csrfProtection } from "../middleware/csrf.middleware.js";
 const router = express.Router();
 
 router.get('/csrf-token', csrfProtection, (req, res) => {
-    const csrfToken = req.csrfToken();
-    res.status(200).json({ csrfToken });
+  const token = req.csrfToken();
+  res.cookie('XSRF-TOKEN', token, {
+    httpOnly: false,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'None',
+  });
+  res.status(200).json({ csrfToken: token });
 });
 
 export default router;
