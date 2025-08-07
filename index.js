@@ -21,7 +21,7 @@ import orderRoutes from "./routes/order.routes.js";
 import stockMovementRoutes from "./routes/stockMovement.routes.js";
 import shippingRoutes from "./routes/shipping.routes.js";
 import catalogRoutes from "./routes/catalog.routes.js";
-import mercadoPagoRoutes from "./routes/mercadopago.routes.js";
+import mercadoPagoRoutes from "./routes/mercadoPago.routes.js";
 import promotionRoutes from "./routes/promotion.routes.js";
 import newsletterRoutes from "./routes/newsletter.routes.js";
 
