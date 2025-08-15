@@ -26,6 +26,12 @@ export const createUser = async (req, res) => {
 
 export const login = async (req, res) => {
     try {
+        console.log('--- DEBUG CSRF (login) ---');
+        console.log('headers x-xsrf-token:', req.headers['x-xsrf-token']);
+        console.log('headers x-csrf-token:', req.headers['x-csrf-token']);
+        console.log('cookies:', req.cookies);
+        console.log('body._csrf:', req.body?._csrf);
+        console.log('--------------------------');
         const { email, password } = req.body;
         const lowerEmail = email?.toLowerCase();
         const { token, refreshToken, userId, role } = await AuthService.authenticateUser(lowerEmail, password);
@@ -86,7 +92,7 @@ export const refreshAccessToken = (req, res) => {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
             sameSite: 'None',
-            maxAge: 60 * 60 * 1000 
+            maxAge: 60 * 60 * 1000
         });
         res.status(200).json({ message: 'Token actualizado.' });
     } catch (error) {

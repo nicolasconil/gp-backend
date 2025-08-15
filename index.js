@@ -8,7 +8,6 @@ import cookieParser from "cookie-parser";
 import helmet from "helmet";
 import compression from "compression";
 import morgan from "morgan";
-import csurf from "csurf";
 
 import { limiter } from "./middleware/ratelimit.middleware.js";
 
@@ -81,14 +80,6 @@ app.use(cors({
 app.use(cookieParser());
 app.use(express.json({ limit: '10kb' }));
 app.use(express.urlencoded({ extended: true }));
-
-app.use(csurf({
-    cookie: {
-        httpOnly: false,
-        sameSite: 'none',
-        secure: process.env.NODE_ENV === 'production'
-    }
-}));
 
 if (process.env.NODE_ENV === 'development') {
     app.use(morgan('dev'));
