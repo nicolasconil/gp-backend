@@ -2,6 +2,12 @@ import mongoose from "mongoose";
 import bcrypt from "bcrypt";
 import crypto from "crypto";
 
+const SessionSchema = new mongoose.Schema({
+    refreshToken: { type: String, required: true },
+    userAgent: { type: String },
+    createdAt: { type: Date, default: Date.now }
+});
+
 const UserSchema = new mongoose.Schema({
     email: {
         type: String,
@@ -25,6 +31,7 @@ const UserSchema = new mongoose.Schema({
         enum: ['administrador', 'moderador'],
         required: true
     },
+    sessions: [SessionSchema],
     createdAt: {
         type: Date,
         default: Date.now

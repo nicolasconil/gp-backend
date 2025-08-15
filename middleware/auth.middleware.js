@@ -2,6 +2,7 @@ import dotenv from "dotenv";
 dotenv.config();
 
 import jwt from "jsonwebtoken";
+import * as UserRepository from "../repositories/user.repository.js";
 
 const secretKey = process.env.SECRET_KEY;
 const refreshSecretKey = process.env.REFRESH_SECRET_KEY;
@@ -29,11 +30,21 @@ export const verifyToken = (req, res, next) => {
     }
     try {
         const decoded = jwt.verify(token, secretKey);
-        console.log('Token decodificado:', decoded);
         req.user = decoded;
         next();
     } catch (error) {
         return res.status(401).json({ message: 'Token inválido o expirado.' });
+    }
+};
+
+export const verifyRefreshToken = async (refreshToken) => {
+    try {
+        const decoded = jwt.verify(refreshToken, refreshSecretKey);
+        const user = await UserRepository.findUserByRefreshToken(refreshToken);
+        if (!user) throw new Error('Refresh token inválido.');
+        return decoded;
+    } catch (error) {
+        throw new Error('Refresh token inválido o expirado.');
     }
 };
 

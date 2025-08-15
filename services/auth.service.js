@@ -3,7 +3,7 @@ import bcrypt from "bcrypt";
 import crypto from "crypto";
 import { generateRefreshToken, generateToken } from "../middleware/auth.middleware.js";
 
-export const authenticateUser = async (email, password) => {
+export const authenticateUser = async (email, password, userAgent) => {
     const emailHash = crypto.createHash('sha256').update(email.toLowerCase()).digest('hex');
     const user = await UserRepository.getUserByEmailHash(emailHash);
     if (!user) throw new Error('Usuario no encontrado.');
@@ -14,6 +14,11 @@ export const authenticateUser = async (email, password) => {
     if (!valid) throw new Error('Contraseña incorrecta.');
     const token = generateToken(user._id, user.role, true);
     const refreshToken = generateRefreshToken(user._id, user.role, true);
+    await UserRepository.addSession(user._id, {
+        refreshToken,
+        userAgent,
+        createdAt: new Date()
+    });
     return { token, refreshToken, userId: user._id, role: user.role };
 };
 
