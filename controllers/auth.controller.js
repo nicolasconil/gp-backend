@@ -27,10 +27,11 @@ export const createUser = async (req, res) => {
 export const login = async (req, res) => {
     try {
         console.log('--- DEBUG CSRF (login) ---');
-        console.log('headers x-xsrf-token:', req.headers['x-xsrf-token']);
-        console.log('headers x-csrf-token:', req.headers['x-csrf-token']);
+        console.log('x-xsrf-token header:', req.headers['x-xsrf-token']);
+        console.log('x-csrf-token header:', req.headers['x-csrf-token']);
         console.log('cookies:', req.cookies);
         console.log('body._csrf:', req.body?._csrf);
+        console.log('csrfToken() value (server):', typeof req.csrfToken === 'function' ? req.csrfToken() : 'no req.csrfToken');
         console.log('--------------------------');
         const { email, password } = req.body;
         const lowerEmail = email?.toLowerCase();

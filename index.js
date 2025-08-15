@@ -8,6 +8,7 @@ import cookieParser from "cookie-parser";
 import helmet from "helmet";
 import compression from "compression";
 import morgan from "morgan";
+import csurf from "csurf";
 
 import { limiter } from "./middleware/ratelimit.middleware.js";
 
@@ -44,8 +45,9 @@ app.disable('x-powered-by');
 app.use(helmet());
 app.use((req, res, next) => {
     res.setHeader('Content-Security-Policy',
-        "default-src 'self' https://betagpfootwear.netlify.app; img-src 'self' data: https:; script-src 'self' 'unsafe-inline' https://betagpfootwear.netlify.app; style-src 'self' 'unsafe-inline' https://betagpfootwear.netlify.app;"
+        "default-src 'self'; connect-src 'self' https://betagpfootwear.netlify.app https://api.mercadopago.com; img-src 'self' data: https:; script-src 'self' https://betagpfootwear.netlify.app; style-src 'self' https://betagpfootwear.netlify.app;"
     );
+
     next();
 })
 
@@ -81,6 +83,24 @@ app.use(cookieParser());
 app.use(express.json({ limit: '10kb' }));
 app.use(express.urlencoded({ extended: true }));
 
+app.use(csurf({
+    cookie: {
+        httpOnly: false,
+        sameSite: 'none',
+        secure: process.env.NODE_ENV === 'production'
+    },
+    value: (req) => {
+        return (
+            req.headers['x-xsrf-token'] ||
+            req.headers['x-csrf-token'] ||
+            (req.body && req.body._csrf) ||
+            (req.query && req.query._csrf) ||
+            (req.cookies && req.cookies['XSRF-TOKEN']) ||
+            null
+        );
+    }
+}));
+
 if (process.env.NODE_ENV === 'development') {
     app.use(morgan('dev'));
 } else {
@@ -111,6 +131,19 @@ app.get('/', (req, res) => {
 
 app.use((req, res, next) => {
     res.status(404).json({ message: 'Ruta no encontrada.' });
+});
+
+app.use((err, req, res, next) => {
+    if (err && err.code === 'EBADCSRFTOKEN') {
+        console.warn('CSRF token inválido:', {
+            message: err.message,
+            path: req.path,
+            method: req.method,
+            ip: req.ip
+        });
+        return res.status(403).json({ message: 'Invalid CSRF token' });
+    }
+    return next(err);
 });
 
 app.use((err, req, res, next) => {

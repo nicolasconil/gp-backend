@@ -6,9 +6,9 @@ import { csrfProtection } from "../middleware/csrf.middleware.js";
 const router = express.Router();
 
 // login
-router.post('/login', csrfProtection, AuthController.login);
+router.post('/login', AuthController.login);
 // logout
-router.post('/logout', csrfProtection, AuthController.logout);
+router.post('/logout', AuthController.logout);
 // refresh token
 router.post('/refresh-token', csrfProtection, AuthController.refreshAccessToken);
 // recuperación de contraseña
