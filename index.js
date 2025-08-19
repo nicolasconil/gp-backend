@@ -26,7 +26,6 @@ import newsletterRoutes from "./routes/newsletter.routes.js";
 
 import csrfRoutes from "./routes/csrf.routes.js";
 import authRoutes from "./routes/auth.routes.js";
-import { csrfProtection } from "./middleware/csrf.middleware.js";
 
 const app = express();
 
@@ -78,7 +77,16 @@ app.use(cors({
   allowedHeaders: ['Content-Type','Authorization','X-XSRF-TOKEN']
 }));
 
-app.use(csrfProtection);
+app.use(csurf({
+  cookie: {
+    key: 'XSRF-TOKEN',
+    httpOnly: false,  
+    sameSite: 'none',
+    secure: process.env.NODE_ENV === 'production'
+  },
+  value: (req) => req.headers['x-xsrf-token'] 
+}))
+
 
 if (process.env.NODE_ENV === 'development') {
     app.use(morgan('dev'));
