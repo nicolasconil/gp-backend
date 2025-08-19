@@ -26,6 +26,7 @@ import newsletterRoutes from "./routes/newsletter.routes.js";
 
 import csrfRoutes from "./routes/csrf.routes.js";
 import authRoutes from "./routes/auth.routes.js";
+import { csrfProtection } from "./middleware/csrf.middleware.js";
 
 const app = express();
 
@@ -64,33 +65,20 @@ app.use(express.json({ limit: '10kb' }));
 app.use(express.urlencoded({ extended: true }));
 
 app.use(cors({
-  origin: allowedOrigins,
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      console.warn("❌ CORS bloqueado para origen:", origin);
+      callback(new Error("No permitido por CORS"));
+    }
+  },
   credentials: true,
   methods: ['GET','POST','PUT','PATCH','DELETE','OPTIONS'],
-  allowedHeaders: ['Content-Type','Authorization','X-XSRF-TOKEN','x-xsrf-token']
+  allowedHeaders: ['Content-Type','Authorization','X-XSRF-TOKEN']
 }));
 
-app.use(csurf({
-  cookie: {
-    key: 'XSRF-TOKEN',
-    httpOnly: false,  
-    sameSite: 'none',
-    secure: process.env.NODE_ENV === 'production'
-  },
-  value: (req) => req.headers['x-xsrf-token'] 
-}))
-
-app.use((req, res, next) => {
-  if (!req.cookies['XSRF-TOKEN']) {
-    res.cookie('XSRF-TOKEN', req.csrfToken(), {
-      httpOnly: false,
-      sameSite: 'none',
-      secure: process.env.NODE_ENV === 'production',
-      path: '/'
-    });
-  }
-  next();
-});
+app.use(csrfProtection);
 
 if (process.env.NODE_ENV === 'development') {
     app.use(morgan('dev'));
