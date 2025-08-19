@@ -85,22 +85,22 @@ app.use(cors({
 }));
 
 app.use(csurf({
-    cookie: {
-        key: 'XSRF-TOKEN',
-        httpOnly: false,
-        sameSite: 'none',
-        secure: process.env.NODE_ENV === 'production'
-    },
-    value: (req) => {
-        return (
-            req.headers['x-xsrf-token'] ||
-            req.headers['x-csrf-token'] ||
-            (req.body && req.body._csrf) ||
-            (req.query && req.query._csrf) ||
-            (req.cookies && req.cookies['XSRF-TOKEN']) ||
-            null
-        );
-    }
+  cookie: {
+    key: '_csrfSecret', 
+    httpOnly: true,        
+    sameSite: 'none',
+    secure: process.env.NODE_ENV === 'production'
+  },
+  value: (req) => {
+    return (
+      req.headers['x-xsrf-token'] ||
+      req.headers['x-csrf-token'] ||
+      (req.body && req.body._csrf) ||
+      (req.query && req.query._csrf) ||
+      (req.cookies && req.cookies['XSRF-TOKEN']) || 
+      null
+    );
+  }
 }));
 
 if (process.env.NODE_ENV === 'development') {
