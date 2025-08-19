@@ -58,49 +58,38 @@ const allowedOrigins = [
     process.env.FRONTEND_URL
 ];
 
-app.use(cors({
-    origin: (origin, callback) => {
-        if (!origin || allowedOrigins.includes(origin)) {
-            callback(null, true);
-        } else {
-            console.warn("❌ CORS bloqueado para origen:", origin);
-            callback(new Error("No permitido por CORS"));
-        }
-    },
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: [
-        'Content-Type',
-        'Authorization',
-        'X-XSRF-TOKEN',
-        'x-xsrf-token'
-    ],
-}));
 
 app.use(cookieParser());
 app.use(express.json({ limit: '10kb' }));
 app.use(express.urlencoded({ extended: true }));
 
-app.use(csurf({
-    cookie: {
-        httpOnly: false,
-        sameSite: 'none',
-        secure: process.env.NODE_ENV === 'production'
-    },
-    value: (req) => {
-        return req.headers['x-xsrf-token'] || req.headers['x-xsrf-token'];
-    }
+app.use(cors({
+  origin: allowedOrigins,
+  credentials: true,
+  methods: ['GET','POST','PUT','PATCH','DELETE','OPTIONS'],
+  allowedHeaders: ['Content-Type','Authorization','X-XSRF-TOKEN','x-xsrf-token']
 }));
 
+app.use(csurf({
+  cookie: {
+    key: 'XSRF-TOKEN',
+    httpOnly: false,  
+    sameSite: 'none',
+    secure: process.env.NODE_ENV === 'production'
+  },
+  value: (req) => req.headers['x-xsrf-token'] 
+}))
+
 app.use((req, res, next) => {
-    if (!req.cookies['XSRF-TOKEN']) {
-        res.cookie('XSRF-TOKEN', req.csrfToken(), {
-            httpOnly: false,
-            sameSite: 'none',
-            secure: process.env.NODE_ENV === 'production'
-        });
-    }
-    next();
+  if (!req.cookies['XSRF-TOKEN']) {
+    res.cookie('XSRF-TOKEN', req.csrfToken(), {
+      httpOnly: false,
+      sameSite: 'none',
+      secure: process.env.NODE_ENV === 'production',
+      path: '/'
+    });
+  }
+  next();
 });
 
 if (process.env.NODE_ENV === 'development') {
