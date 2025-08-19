@@ -2,6 +2,7 @@ import * as AuthService from "../services/auth.service.js";
 import User from "../models/user.model.js";
 import logger from "../utils/logger.js";
 import jwt from "jsonwebtoken";
+import * as UserRepository from "../repositories/user.repository.js";
 
 const refreshSecretKey = process.env.REFRESH_SECRET_KEY;
 if (!refreshSecretKey) {
@@ -26,16 +27,10 @@ export const createUser = async (req, res) => {
 
 export const login = async (req, res) => {
     try {
-        console.log('--- DEBUG CSRF (login) ---');
-        console.log('x-xsrf-token header:', req.headers['x-xsrf-token']);
-        console.log('x-csrf-token header:', req.headers['x-csrf-token']);
-        console.log('cookies:', req.cookies);
-        console.log('body._csrf:', req.body?._csrf);
-        console.log('csrfToken() value (server):', typeof req.csrfToken === 'function' ? req.csrfToken() : 'no req.csrfToken');
-        console.log('--------------------------');
         const { email, password } = req.body;
         const lowerEmail = email?.toLowerCase();
-        const { token, refreshToken, userId, role } = await AuthService.authenticateUser(lowerEmail, password);
+        const userAgent = req.get('User-Agent') || 'unknow';
+        const { token, refreshToken, userId, role } = await AuthService.authenticateUser(lowerEmail, password, userAgent);
         logger.info(`/POST /login - Usuario ${userId} autenticado correctamente.`);
         const cookieOptions = {
             httpOnly: true,
@@ -64,26 +59,39 @@ export const login = async (req, res) => {
     }
 };
 
-export const logout = (req, res) => {
-    const options = {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'None',
-    };
-    res.clearCookie('token', options);
-    res.clearCookie('refreshToken', options);
-    res.clearCookie('XSRF-TOKEN', { ...options, httpOnly: false });
-    logger.info(`POST /logout - Usuario deslogueado.`);
-    res.status(200).json({ message: 'Sesión cerrada correctamente.' });
+export const logout = async (req, res) => {
+    try {
+        const refreshToken = req.cookies?.refreshToken;
+        if (refreshToken) {
+            await UserRepository.removeSessionByRefreshToken(refreshToken);
+        }
+        const options = {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'None',
+        };
+        res.clearCookie('token', options);
+        res.clearCookie('refreshToken', options);
+        res.clearCookie('XSRF-TOKEN', { ...options, httpOnly: false });
+        logger.info(`POST /logout - Usuario deslogueado.`);
+        res.status(200).json({ message: 'Sesión cerrada correctamente.' });
+    } catch (error) {
+        logger.error(`POST /logout - ${error.message}`);
+        return res.status(500).json({ message: 'Error al cerrar la sesión.' });
+    }
 };
 
-export const refreshAccessToken = (req, res) => {
+export const refreshAccessToken = async (req, res) => {
     try {
         const refreshToken = req.cookies?.refreshToken;
         if (!refreshToken) {
             return res.status(401).json({ message: 'No se proporcionó refresh token.' });
         }
         const decoded = jwt.verify(refreshToken, refreshSecretKey);
+        const user = await UserRepository.findUserByRefreshToken(refreshToken);
+        if (!user) {
+            return res.status(401).json({ message: 'Refresh token inválido (no existe en DB).' });
+        }
         const newAccessToken = jwt.sign({
             id: decoded.id,
             role: decoded.role,

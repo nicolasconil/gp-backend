@@ -41,3 +41,10 @@ export const addSession = (userId, session) => {
 export const findUserByRefreshToken = (refreshToken) => {
     return User.findOne({ "sessions.refreshToken": refreshToken });
 };
+
+export const removeSessionByRefreshToken = (refreshToken) => {
+    return User.updateOne(
+        { "sessions.refreshToken": refreshToken },
+        { $pull: { sessions: { refreshToken } } }
+    );
+};
