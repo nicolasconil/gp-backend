@@ -73,9 +73,7 @@ app.use(cors({
         'Content-Type',
         'Authorization',
         'X-XSRF-TOKEN',
-        'XSRF-TOKEN',
-        'x-xsrf-token',
-        'xsrf-token'
+        'x-xsrf-token'
     ],
 }));
 
@@ -90,16 +88,20 @@ app.use(csurf({
         secure: process.env.NODE_ENV === 'production'
     },
     value: (req) => {
-        return (
-            req.headers['x-xsrf-token'] ||
-            req.headers['x-csrf-token'] ||
-            (req.body && req.body._csrf) ||
-            (req.query && req.query._csrf) ||
-            (req.cookies && req.cookies['XSRF-TOKEN']) ||
-            null
-        );
+        return req.headers['x-xsrf-token'] || req.headers['x-xsrf-token'];
     }
 }));
+
+app.use((req, res, next) => {
+    if (!req.cookies['XSRF-TOKEN']) {
+        res.cookie('XSRF-TOKEN', req.csrfToken(), {
+            httpOnly: false,
+            sameSite: 'none',
+            secure: process.env.NODE_ENV === 'production'
+        });
+    }
+    next();
+});
 
 if (process.env.NODE_ENV === 'development') {
     app.use(morgan('dev'));
