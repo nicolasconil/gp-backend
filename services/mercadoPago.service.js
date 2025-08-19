@@ -17,16 +17,17 @@ export const createPreference = async (order) => {
     const preference = {
         items,
         back_urls: {
-            success: `https://www.instagram.com/gp.footwear/`,
-            failure: `https://www.tiktok.com/@gpfootwear`,
-            pending: `https://www.instagram.com/facumillesimo_/`,
+            success: `https://betagpfootwear.netlify.app`,
+            failure: `https://betagpfootwear.netlify.app`,
+            pending: `https://betagpfootwear.netlify.app/`,
         },
         auto_return: 'approved',
         notification_url: 'https://gp-backend-f7dk.onrender.com/api/mercadopago/webhook?source_news=webhooks',
         external_reference: order._id,
         payer: {
             email: order.user?.email || order.guestEmail || 'invitado@example'
-        }
+        },
+        max_installments: 3
     };
     const response = await new Preference(mpClient).create({ body: preference });
     return response;
