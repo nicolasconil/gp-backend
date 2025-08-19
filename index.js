@@ -8,10 +8,8 @@ import cookieParser from "cookie-parser";
 import helmet from "helmet";
 import compression from "compression";
 import morgan from "morgan";
-import csurf from "csurf";
 
 import { limiter } from "./middleware/ratelimit.middleware.js";
-
 import { requestLogger } from "./middleware/requestLogger.middleware.js";
 
 import userRoutes from "./routes/user.routes.js";
@@ -26,6 +24,8 @@ import newsletterRoutes from "./routes/newsletter.routes.js";
 
 import csrfRoutes from "./routes/csrf.routes.js";
 import authRoutes from "./routes/auth.routes.js";
+
+import { csrfProtection } from "./middleware/csrf.middleware.js";
 
 const app = express();
 
@@ -58,7 +58,6 @@ const allowedOrigins = [
     process.env.FRONTEND_URL
 ];
 
-
 app.use(cookieParser());
 app.use(express.json({ limit: '10kb' }));
 app.use(express.urlencoded({ extended: true }));
@@ -84,24 +83,7 @@ app.use(cors({
     ],
 }));
 
-app.use(csurf({
-  cookie: {
-    key: '_csrfSecret', 
-    httpOnly: true,        
-    sameSite: 'none',
-    secure: process.env.NODE_ENV === 'production'
-  },
-  value: (req) => {
-    return (
-      req.headers['x-xsrf-token'] ||
-      req.headers['x-csrf-token'] ||
-      (req.body && req.body._csrf) ||
-      (req.query && req.query._csrf) ||
-      (req.cookies && req.cookies['XSRF-TOKEN']) || 
-      null
-    );
-  }
-}));
+app.use(csrfProtection);
 
 if (process.env.NODE_ENV === 'development') {
     app.use(morgan('dev'));
