@@ -136,16 +136,30 @@ app.use((req, res, next) => {
 });
 
 app.use((err, req, res, next) => {
-    if (err && err.code === 'EBADCSRFTOKEN') {
-        console.warn('CSRF token inválido:', {
-            message: err.message,
-            path: req.path,
-            method: req.method,
-            ip: req.ip
-        });
-        return res.status(403).json({ message: 'Invalid CSRF token' });
-    }
-    return next(err);
+  if (err && err.code === 'EBADCSRFTOKEN') {
+    // DEBUG TEMPORAL — quitar en producción
+    console.warn('=== CSRF DEBUG ===');
+    console.warn('req.headers.cookie =', req.headers.cookie);
+    console.warn('req.cookies =', req.cookies);
+    console.warn('x-xsrf-token header =', req.get('x-xsrf-token'));
+    console.warn('x-csrf-token header =', req.get('x-csrf-token'));
+    console.warn('x-xsrf-token header =', req.get('x-xsrf-token'));
+    console.warn('body._csrf =', req.body && req.body._csrf);
+    console.warn('path, method =', req.path, req.method);
+
+    // opcional: devolver info limitada en la respuesta (útil para probar desde el navegador)
+    return res.status(403).json({
+      message: 'Invalid CSRF token',
+      debug: {
+        cookieHeader: req.headers.cookie,
+        x_xsrf_token_header: req.get('x-xsrf-token'),
+        x_csrf_token_header: req.get('x-csrf-token'),
+        x_xsrf_token_header_lower: req.get('x-xsrf-token'),
+        body__csrf: req.body && req.body._csrf
+      }
+    });
+  }
+  return next(err);
 });
 
 app.use((err, req, res, next) => {
