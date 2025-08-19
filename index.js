@@ -8,7 +8,7 @@ import cookieParser from "cookie-parser";
 import helmet from "helmet";
 import compression from "compression";
 import morgan from "morgan";
-
+import csurf from "csurf";
 
 import { limiter } from "./middleware/ratelimit.middleware.js";
 
@@ -26,7 +26,6 @@ import newsletterRoutes from "./routes/newsletter.routes.js";
 
 import csrfRoutes from "./routes/csrf.routes.js";
 import authRoutes from "./routes/auth.routes.js";
-import { csrfProtection } from "./middleware/csrf.middleware.js";
 
 const app = express();
 
@@ -85,7 +84,24 @@ app.use(cors({
     ],
 }));
 
-app.use(csrfProtection);
+app.use(csurf({
+    cookie: {
+        key: 'XSRF-TOKEN',
+        httpOnly: false,
+        sameSite: 'none',
+        secure: process.env.NODE_ENV === 'production'
+    },
+    value: (req) => {
+        return (
+            req.headers['x-xsrf-token'] ||
+            req.headers['x-csrf-token'] ||
+            (req.body && req.body._csrf) ||
+            (req.query && req.query._csrf) ||
+            (req.cookies && req.cookies['XSRF-TOKEN']) ||
+            null
+        );
+    }
+}));
 
 if (process.env.NODE_ENV === 'development') {
     app.use(morgan('dev'));
