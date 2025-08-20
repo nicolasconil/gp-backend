@@ -21,7 +21,6 @@ export const sendEmail = async ({ to, subject, html, text = '', attachments = []
     try {
         await transporter.sendMail(mailOptions);
     } catch (error) {
-        console.error(`Error enviando email a ${to}:`, error.message);
         throw new Error(`No se pudo enviar el email a ${to}.`);
     }
 };

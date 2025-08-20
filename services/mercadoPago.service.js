@@ -19,7 +19,7 @@ export const createPreference = async (order) => {
         back_urls: {
             success: `https://betagpfootwear.netlify.app`,
             failure: `https://betagpfootwear.netlify.app`,
-            pending: `https://betagpfootwear.netlify.app/`,
+            pending: `https://betagpfootwear.netlify.app`,
         },
         auto_return: 'approved',
         notification_url: 'https://gp-backend-f7dk.onrender.com/api/mercadopago/webhook?source_news=webhooks',
@@ -27,7 +27,11 @@ export const createPreference = async (order) => {
         payer: {
             email: order.user?.email || order.guestEmail || 'invitado@example'
         },
-        max_installments: 3
+        payment_methods: {
+            installments: 3,
+            excluded_payment_types: [],
+            excluded_payment_methods: []
+        }
     };
     const response = await new Preference(mpClient).create({ body: preference });
     return response;

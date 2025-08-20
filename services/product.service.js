@@ -83,8 +83,5 @@ export const updateStock = async (productId, size, color, quantity, movementType
         throw new Error('Stock insuficiente para la venta.');
     }
     variation.stock = movementType === 'venta' ? variation.stock - quantity : variation.stock + quantity;
-    if (variation.stock <= variation.stockMinimo) {
-        console.log(`Alerta: Stock bajo para ${product.name} (${size}, ${color}).`);
-    }
     await ProductRepository.updateProductStock(productId, size, color, variation.stock);
 };

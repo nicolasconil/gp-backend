@@ -67,7 +67,6 @@ app.use(cors({
         if (!origin || allowedOrigins.includes(origin)) {
             callback(null, true);
         } else {
-            console.warn("❌ CORS bloqueado para origen:", origin);
             callback(new Error("No permitido por CORS"));
         }
     },
@@ -118,7 +117,6 @@ app.use((req, res, next) => {
 });
 
 app.use((err, req, res, next) => {
-    console.error(err.stack);
     res.status(500).json({
         message: 'Error interno del servidor',
         error: err.message

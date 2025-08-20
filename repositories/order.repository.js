@@ -7,7 +7,6 @@ const populateOptions = [
 
 export const createOrder = async (data, session) => {
     try {
-        console.log("Shipping recibido:", data.shipping);
         const createdOrders = await Order.create([data], { session });
         const newOrder = createdOrders[0];
         if (!newOrder || !newOrder._id) {

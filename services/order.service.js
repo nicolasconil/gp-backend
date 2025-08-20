@@ -23,7 +23,6 @@ export const create = async (orderData) => {
         const shipping = await ShippingService.createShippingForOrder(order._id, {}, session);
         order.shipping = shipping._id;
         await order.save({ session });
-        console.log("Order con shipping asociado:", order.shipping);
         for (const item of orderData.products) {
             await StockMovementRepository.createStockMovement(
                 {
