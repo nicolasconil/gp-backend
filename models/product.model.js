@@ -18,7 +18,7 @@ const variationSchema = new mongoose.Schema({
     image: {
         type: String
     }
-}, {_id: false });
+}, { _id: false });
 
 const ProductSchema = new mongoose.Schema({
     name: {
@@ -36,7 +36,11 @@ const ProductSchema = new mongoose.Schema({
     },
     image: {
         type: String,
-        required: true
+        required: false
+    },
+    images: {
+        type: [String],
+        default: []
     },
     gender: {
         type: String,
@@ -49,7 +53,7 @@ const ProductSchema = new mongoose.Schema({
     },
     variations: {
         type: [variationSchema],
-        validate: [array => array.length > 0, 'Se requiere al menos una variante.']
+        validate: [array => Array.isArray(array) && array.length > 0, 'Se requiere al menos una variante.']
     },
     isActive: {
         type: Boolean,
@@ -61,8 +65,10 @@ const ProductSchema = new mongoose.Schema({
     }
 });
 
+// virtual para stock total (suma de todas las variaciones)
 ProductSchema.virtual('stock').get(function () {
-    return this.variations.reduce((acc, v) => acc + v.stock, 0);
+    if (!Array.isArray(this.variations) || this.variations.length === 0) return 0;
+    return this.variations.reduce((acc, v) => acc + (v.stock || 0), 0);
 });
 
 ProductSchema.set('toJSON', { virtuals: true });
@@ -82,7 +88,7 @@ ProductSchema.methods.moveStock = function ({ size, color, qty, type }) {
 ProductSchema.pre('validate', function (next) {
     const seen = new Set();
     for (const v of this.variations) {
-        const key = `${v.size}-${v.color}`;
+        const key = `${v.size}-${v.color}`.toLowerCase();
         if (seen.has(key)) {
             return next(new Error('No puede haber variaciones duplicadas con el mismo tamaño y color.'));
         }

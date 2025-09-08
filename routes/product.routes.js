@@ -17,8 +17,8 @@ router.use(AuthMiddleware.verifyToken);
 router.use(AuthMiddleware.verifyModerator);
 
 // creación, actualización, eliminación y actualizar stock de un producto
-router.post('/', csrfProtection, upload.single('image'), ProductController.create);
-router.put('/:id', csrfProtection, upload.single('image'), ProductController.update);
+router.post('/', csrfProtection, upload.array('images', 12), ProductController.create);
+router.put('/:id', csrfProtection, upload.array('images', 12), ProductController.update);
 router.delete('/:id', csrfProtection, ProductController.remove);
 router.patch('/:id/stock', csrfProtection, ProductController.updateStock);
 
