@@ -17,12 +17,12 @@ export const createPreference = async (order) => {
     const preference = {
         items,
         back_urls: {
-            success: `https://betagpfootwear.netlify.app`,
-            failure: `https://betagpfootwear.netlify.app`,
-            pending: `https://betagpfootwear.netlify.app`,
+            success: `https://www.gpfootwear.com`,
+            failure: `https://www.gpfootwear.com`,
+            pending: `https://www.gpfootwear.com`,
         },
         auto_return: 'approved',
-        notification_url: 'https://gp-backend-f7dk.onrender.com/api/mercadopago/webhook?source_news=webhooks',
+        notification_url: 'https://https://www.gpfootwear.com/api/mercadopago/webhook?source_news=webhooks',
         external_reference: order._id,
         payer: {
             email: order.user?.email || order.guestEmail || 'invitado@example'
