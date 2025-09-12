@@ -21,7 +21,6 @@ import catalogRoutes from "./routes/catalog.routes.js";
 import mercadoPagoRoutes from "./routes/mercadoPago.routes.js";
 import promotionRoutes from "./routes/promotion.routes.js";
 import newsletterRoutes from "./routes/newsletter.routes.js";
-import prerenderRoutes from "./prerender.routes.js";
 
 import csrfRoutes from "./routes/csrf.routes.js";
 import authRoutes from "./routes/auth.routes.js";
@@ -46,7 +45,7 @@ app.disable('x-powered-by');
 app.use(helmet());
 app.use((req, res, next) => {
     res.setHeader('Content-Security-Policy',
-        "default-src 'self'; connect-src 'self' https://betagpfootwear.netlify.app https://api.mercadopago.com; img-src 'self' data: https:; script-src 'self' https://betagpfootwear.netlify.app; style-src 'self' https://betagpfootwear.netlify.app;"
+        "default-src 'self'; connect-src 'self' https://www.gpfootwear.com https://api.mercadopago.com; img-src 'self' data: https:; script-src 'self' https://betagpfootwear.netlify.app; style-src 'self' https://betagpfootwear.netlify.app;"
     );
 
     next();
@@ -55,7 +54,7 @@ app.use((req, res, next) => {
 app.use(compression());
 
 const allowedOrigins = [
-    'https://betagpfootwear.netlify.app',
+    'https://www.gpfootwear.com',
     process.env.FRONTEND_URL
 ];
 
@@ -98,8 +97,6 @@ app.use(requestLogger);
 
 app.use('/api/auth', csrfRoutes);
 app.use('/api/auth', authRoutes);
-
-app.use('/', prerenderRoutes);
 
 app.use('/api/users', userRoutes);
 app.use('/api/products', productRoutes);
