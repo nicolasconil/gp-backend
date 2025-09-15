@@ -1,5 +1,6 @@
 import nodemailer from "nodemailer";
 import { orderConfirmationEmailTemplate, sendShippingNotificationEmailTemplate, adminNewOrderEmailTemplate, updateStatusEmailTemplate, adminStockAlertEmailTemplate, sendOrderRejectedEmailTemplate } from "../utils/emailTemplates.js";
+import logger from "../utils/logger.js";
 
 const transporter = nodemailer.createTransport({
     service: 'gmail',
@@ -20,8 +21,10 @@ export const sendEmail = async ({ to, subject, html, text = '', attachments = []
     };
     try {
         await transporter.sendMail(mailOptions);
+        logger.info(`Email enviado a ${to} - asunto: ${subject}`);
     } catch (error) {
-        throw new Error(`No se pudo enviar el email a ${to}.`);
+        logger.error(`Error enviando email a ${to}: ${error.message}`, { error });
+        throw new Error(`No se pudo enviar el email a ${to}. Error: ${error.message}`);
     }
 };
 
