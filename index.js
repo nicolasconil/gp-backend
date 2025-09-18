@@ -29,6 +29,24 @@ import { csrfProtection } from "./middleware/csrf.middleware.js";
 
 const app = express();
 
+app.use(express.json({
+  verify: (req, res, buf) => {
+    if (req.originalUrl && req.originalUrl.includes('/mercadopago/webhook')) {
+      req.rawBody = buf.toString('utf8');
+    }
+  },
+  strict: false
+}));
+
+app.use(express.urlencoded({
+  extended: true,
+  verify: (req, res, buf) => {
+    if (req.originalUrl && req.originalUrl.includes('/mercadopago/webhook')) {
+      req.rawBody = buf.toString('utf8');
+    }
+  }
+}));
+
 app.use((req, res, next) => {
     if (process.env.NODE_ENV === 'production' && req.headers["x-forwarded-proto"] !== "https") {
         return res.redirect("https://" + req.headers.host + req.url);
