@@ -4,7 +4,6 @@ import Order from "../models/order.model.js";
 import mapMPStatus from "../utils/mapMPStatus.js";
 import { processAfterOrder } from "./order.service.js";
 import { sendNewOrderNotificationToAdmin, sendOrderRejectedEmail } from "../middleware/email.middleware.js";
-import logger from "../utils/logger.js";
 
 export const createPreference = async (order) => {
     const items = order.products.map(product => ({
