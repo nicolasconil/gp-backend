@@ -31,7 +31,7 @@ const app = express();
 
 app.use(express.json({
   verify: (req, res, buf) => {
-    if (req.originalUrl && req.originalUrl.includes('/mercadopago/webhook')) {
+    if (req.originalUrl && req.originalUrl.includes('/api/mercadopago/webhook')) {
       req.rawBody = buf.toString('utf8');
     }
   },
@@ -41,7 +41,7 @@ app.use(express.json({
 app.use(express.urlencoded({
   extended: true,
   verify: (req, res, buf) => {
-    if (req.originalUrl && req.originalUrl.includes('/mercadopago/webhook')) {
+    if (req.originalUrl && req.originalUrl.includes('/api/mercadopago/webhook')) {
       req.rawBody = buf.toString('utf8');
     }
   }
@@ -63,7 +63,7 @@ app.disable('x-powered-by');
 app.use(helmet());
 app.use((req, res, next) => {
     res.setHeader('Content-Security-Policy',
-        "default-src 'self'; connect-src 'self' https://www.gpfootwear.com https://api.mercadopago.com; img-src 'self' data: https:; script-src 'self' https://betagpfootwear.netlify.app; style-src 'self' https://betagpfootwear.netlify.app;"
+        "default-src 'self'; connect-src 'self' https://www.gpfootwear.com https://api.mercadopago.com; img-src 'self' data: https:; script-src 'self' https://www.gpfootwear.com; style-src 'self' https://www.gpfootwear.com;"
     );
 
     next();
@@ -100,6 +100,8 @@ app.use(cors({
     ],
 }));
 
+app.use('/api/mercadopago', mercadoPagoRoutes);
+
 app.use(csrfProtection);
 
 if (process.env.NODE_ENV === 'development') {
@@ -122,7 +124,6 @@ app.use('/api/orders', orderRoutes);
 app.use('/api/stock-movements', stockMovementRoutes);
 app.use('/api/shipping', shippingRoutes);
 app.use('/api/catalogs', catalogRoutes);
-app.use('/api/mercadopago', mercadoPagoRoutes);
 app.use('/api/promotions', promotionRoutes);
 app.use('/api/newsletter', newsletterRoutes);
 
