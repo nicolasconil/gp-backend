@@ -82,7 +82,6 @@ app.use(cors({
     ],
 }));
 
-app.use('/api/mercadopago', mercadoPagoRoutes);
 
 app.use(csrfProtection);
 
@@ -106,6 +105,7 @@ app.use('/api/orders', orderRoutes);
 app.use('/api/stock-movements', stockMovementRoutes);
 app.use('/api/shipping', shippingRoutes);
 app.use('/api/catalogs', catalogRoutes);
+app.use('/api/mercadopago', mercadoPagoRoutes);
 app.use('/api/promotions', promotionRoutes);
 app.use('/api/newsletter', newsletterRoutes);
 
