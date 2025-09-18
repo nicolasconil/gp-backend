@@ -5,7 +5,6 @@ import * as ShippingService from "../services/shipping.service.js";
 import { generateInvoice } from "../utils/invoiceGenerator.js";
 import { sendOrderConfirmationEmail, sendShippingNotificationEmail, sendUpdateStatusEmail } from "../middleware/email.middleware.js";
 
-import fs from "fs";
 import path from "path";
 import crypto from "crypto";
 
@@ -92,7 +91,7 @@ export const getOrdersByUserId = async (userId) => {
 
 export const updatePaymentInfo = async (orderId, paymentInfo) => {
     const updateData = {
-        status: paymentInfo.status === 'approved' ? 'pagado' : 'pendiente', 
+        status: paymentInfo.status === 'approved' ? 'procesando' : 'pendiente',
         payment: paymentInfo
     };
     const updatedOrder = await OrderRepository.updateOrder(orderId, updateData);
@@ -154,63 +153,49 @@ export const dispatchOrder = async (id, shippingTrackingNumber) => {
 };
 
 export const processAfterOrder = async (order) => {
-  if (!order || !order._id) {
-    throw new Error('Orden inválida para procesamiento posterior.');
-  }
-  const invoicesDir = path.resolve(process.cwd(), 'invoices');
-  if (!fs.existsSync(invoicesDir)) {
-    fs.mkdirSync(invoicesDir, { recursive: true });
-    logger.info(`Directorio de invoices creado en ${invoicesDir}`);
-  }
-
-  const invoicePath = path.resolve(invoicesDir, `comprobante-${order._id}.pdf`);
-
-  const invoiceExistsOnDisk = fs.existsSync(invoicePath);
-  if (!order.invoicePath && !invoiceExistsOnDisk) {
+    if (!order || !order._id) {
+        throw new Error('Orden inválida para procesamiento posterior.');
+    }
+    const invoicesDir = path.resolve(process.cwd(), 'invoices');
     try {
-      await generateInvoice(order, invoicePath);
-      logger.info(`Invoice generado: ${invoicePath}`);
-      order.invoicePath = invoicePath;
-      await order.save();
-    } catch (err) {
-      logger.error(`Error generando invoice para orden ${order._id}: ${err.message}`);
-    }
-  } else {
-    if (!order.invoicePath && invoiceExistsOnDisk) {
-      order.invoicePath = invoicePath;
-      await order.save();
-      logger.info(`Invoice existente detectado y guardado en order.invoicePath para ${order._id}`);
-    } else {
-      logger.info(`Invoice ya generado para orden ${order._id}, path: ${order.invoicePath || invoicePath}`);
-    }
-  }
-  const email = order.guestEmail;
-  const name = order.guestName || 'Cliente';
+        if (!fs.existsSync(invoicesDir)) {
+            fs.mkdirSync(invoicesDir, { recursive: true });
+            logger.info(`Directorio de invoices creado en ${invoicesDir}`);
+        }
 
-  if (email) {
-    if (order.confirmationEmailSent) {
-      logger.info(`Confirmation email ya enviado para orden ${order._id}, saltando.`);
-    } else {
-      try {
-        await sendOrderConfirmationEmail(
-          email,
-          name,
-          order._id,
-          order.totalAmount,
-          order.invoicePath || invoicePath,
-          order
-        );
-        order.confirmationEmailSent = true;
-        await order.save();
-        logger.info(`Email de confirmación enviado a ${email} para orden ${order._id}`);
-      } catch (err) {
-        logger.error(`Error enviando email de confirmación para orden ${order._id} a ${email}: ${err.message}`);
-      }
+        const invoicePath = path.resolve(invoicesDir, `comprobante-${order._id}.pdf`);
+        try {
+            await generateInvoice(order, invoicePath);
+            logger.info(`Invoice generado: ${invoicePath}`);
+        } catch (err) {
+            logger.error(`Error generando invoice para orden ${order._id}: ${err.message}`);
+        }
+
+        const email = order.guestEmail;
+        const name = order.guestName || 'Cliente';
+
+        if (email) {
+            try {
+                await sendOrderConfirmationEmail(
+                    email,
+                    name,
+                    order._id,
+                    order.totalAmount,
+                    invoicePath,
+                    order
+                );
+                logger.info(`Email de confirmación enviado a ${email} para orden ${order._id}`);
+            } catch (err) {
+                logger.error(`Error enviando email de confirmación para orden ${order._id} a ${email}: ${err.message}`);
+            }
+        } else {
+            logger.warn(`Orden ${order._id} no tiene guestEmail, no se envía comprobante por email.`);
+        }
+        return invoicePath;
+    } catch (error) {
+        logger.error(`processAfterOrder fallo crítico para orden ${order._id}: ${error.message}`);
+        throw new Error(`Error en procesar la orden: ${error.message}.`);
     }
-  } else {
-    logger.warn(`Orden ${order._id} no tiene guestEmail, no se envía comprobante por email.`);
-  }
-  return order.invoicePath || invoicePath;
 };
 
 export const getOrdersForShipping = async () => {
