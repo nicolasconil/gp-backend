@@ -5,11 +5,8 @@ import * as ShippingService from "../services/shipping.service.js";
 import { generateInvoice } from "../utils/invoiceGenerator.js";
 import { sendOrderConfirmationEmail, sendShippingNotificationEmail, sendUpdateStatusEmail } from "../middleware/email.middleware.js";
 
-import fs from "fs";
 import path from "path";
 import crypto from "crypto";
-
-import logger from "../utils/logger.js";
 
 export const create = async (orderData) => {
     const session = await mongoose.startSession();
@@ -157,44 +154,26 @@ export const processAfterOrder = async (order) => {
     if (!order || !order._id) {
         throw new Error('Orden inválida para procesamiento posterior.');
     }
-    const invoicesDir = path.resolve(process.cwd(), 'invoices');
     try {
-        if (!fs.existsSync(invoicesDir)) {
-            fs.mkdirSync(invoicesDir, { recursive: true });
-            logger.info(`Directorio de invoices creado en ${invoicesDir}`);
-        }
-
-        const invoicePath = path.resolve(invoicesDir, `comprobante-${order._id}.pdf`);
-        try {
-            await generateInvoice(order, invoicePath);
-            logger.info(`Invoice generado: ${invoicePath}`);
-        } catch (err) {
-            logger.error(`Error generando invoice para orden ${order._id}: ${err.message}`);
-        }
-
+        const invoicePath = path.resolve(
+            process.cwd(),
+            'invoices',
+            `comprobante-${order._id}.pdf`
+        );
+        await generateInvoice(order, invoicePath);
         const email = order.guestEmail;
         const name = order.guestName || 'Cliente';
-
         if (email) {
-            try {
-                await sendOrderConfirmationEmail(
-                    email,
-                    name,
-                    order._id,
-                    order.totalAmount,
-                    invoicePath,
-                    order
-                );
-                logger.info(`Email de confirmación enviado a ${email} para orden ${order._id}`);
-            } catch (err) {
-                logger.error(`Error enviando email de confirmación para orden ${order._id} a ${email}: ${err.message}`);
-            }
-        } else {
-            logger.warn(`Orden ${order._id} no tiene guestEmail, no se envía comprobante por email.`);
+            await sendOrderConfirmationEmail(
+                email,
+                name,
+                order._id,
+                order.totalAmount,
+                invoicePath,
+                order
+            );
         }
-        return invoicePath;
     } catch (error) {
-        logger.error(`processAfterOrder fallo crítico para orden ${order._id}: ${error.message}`);
         throw new Error(`Error en procesar la orden: ${error.message}.`);
     }
 };
