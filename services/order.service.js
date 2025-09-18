@@ -92,7 +92,7 @@ export const getOrdersByUserId = async (userId) => {
 
 export const updatePaymentInfo = async (orderId, paymentInfo) => {
     const updateData = {
-        status: paymentInfo.status === 'approved' ? 'procesando' : 'pendiente',
+        status: paymentInfo.status === 'approved' ? 'pagado' : 'pendiente', 
         payment: paymentInfo
     };
     const updatedOrder = await OrderRepository.updateOrder(orderId, updateData);
