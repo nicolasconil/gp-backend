@@ -5,6 +5,7 @@ import * as ShippingService from "../services/shipping.service.js";
 import { generateInvoice } from "../utils/invoiceGenerator.js";
 import { sendOrderConfirmationEmail, sendShippingNotificationEmail, sendUpdateStatusEmail } from "../middleware/email.middleware.js";
 
+import fs from "fs";
 import path from "path";
 import crypto from "crypto";
 
