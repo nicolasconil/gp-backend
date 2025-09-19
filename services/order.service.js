@@ -70,7 +70,7 @@ export const updateStatus = async (id, status) => {
                 email,
                 name,
                 updatedOrder._id,
-                status 
+                status
             );
         }
         return updatedOrder;
@@ -163,6 +163,8 @@ export const processAfterOrder = async (order) => {
         await generateInvoice(order, invoicePath);
         const email = order.guestEmail;
         const name = order.guestName || 'Cliente';
+        const cancelUrl = `${process.env.FRONTEND_URL}/cancelar/${order.cancelToken}`;
+        const viewOrderUrl = `${process.env.FRONTEND_URL}/seguimiento/${order._id}`;
         if (email) {
             await sendOrderConfirmationEmail(
                 email,
