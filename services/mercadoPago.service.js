@@ -44,29 +44,50 @@ export const processWebhook = async (data) => {
     } catch (err) {
         throw new Error(`Error al obtener pago con ID ${paymentId}: ${err.message}`);
     }
-    const { status, id: transactionId, external_reference } = paymentResponse;
+
+    const paymentData = paymentResponse?.body ? paymentResponse.body : paymentResponse;
+    const { status, id: transactionId, external_reference } = paymentData;
+
+    if (!external_reference) {
+        throw new Error(`El pago ${paymentId} no tiene external_reference.`);
+    }
+
     const order = await Order.findById(external_reference).populate('products.product');
     if (!order) throw new Error(`Orden con ID ${external_reference} no encontrada.`);
+
+    order.payment = order.payment || {};
     order.payment.status = mapMPStatus(status);
-    order.payment.transactionId = transactionId.toString();
-    order.payment.rawData = paymentResponse;
+    order.payment.transactionId = (transactionId || '').toString();
+    order.payment.rawData = paymentData;
+
     switch (status) {
         case 'approved':
             order.status = 'procesando';
             await processAfterOrder(order);
             await sendNewOrderNotificationToAdmin(order);
             break;
-        case 'in_process': 
-            order.status = 'pendiente';
-            break;
+        case 'in_process':
         case 'pending':
             order.status = 'pendiente';
             break;
         case 'rejected':
-        default: 
+        default:
             order.status = 'rechazada';
-            await sendOrderRejectedEmail(order);
+
+            {
+                const buyerEmail = order.guestEmail;
+                try {
+                    if (buyerEmail) {
+                        await sendOrderRejectedEmail(buyerEmail, order);
+                    } else {
+                        logger.warn(`Orden ${order._id} sin guestEmail; no se envió mail de rechazo.`);
+                    }
+                } catch (err) {
+                    logger.error(`Error enviando mail de rechazo para orden ${order._id}: ${err.message}`);
+                }
+            }
             break;
     }
+
     await order.save();
 };

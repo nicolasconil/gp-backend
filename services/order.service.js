@@ -70,7 +70,7 @@ export const updateStatus = async (id, status) => {
                 email,
                 name,
                 updatedOrder._id,
-                status 
+                status
             );
         }
         return updatedOrder;
@@ -161,8 +161,10 @@ export const processAfterOrder = async (order) => {
             `comprobante-${order._id}.pdf`
         );
         await generateInvoice(order, invoicePath);
-        const email = order.guestEmail;
-        const name = order.guestName || 'Cliente';
+
+        const email = order.guestEmail || (order.user && order.user.email) || order.user?.email;
+        const name = order.guestName || (order.user && order.user.name) || 'Cliente';
+
         if (email) {
             await sendOrderConfirmationEmail(
                 email,
@@ -172,6 +174,8 @@ export const processAfterOrder = async (order) => {
                 invoicePath,
                 order
             );
+        } else {
+            logger.warn(`No se envió comprobante por email: no se encontró email para orden ${order._id}`);
         }
     } catch (error) {
         throw new Error(`Error en procesar la orden: ${error.message}.`);
