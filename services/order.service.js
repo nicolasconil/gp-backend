@@ -8,6 +8,8 @@ import { sendOrderConfirmationEmail, sendShippingNotificationEmail, sendUpdateSt
 import path from "path";
 import crypto from "crypto";
 
+import logger from "../utils/logger.js";
+
 export const create = async (orderData) => {
     const session = await mongoose.startSession();
     let committed = false;
@@ -155,29 +157,35 @@ export const processAfterOrder = async (order) => {
         throw new Error('Orden inválida para procesamiento posterior.');
     }
     try {
-        const invoicePath = path.resolve(
-            process.cwd(),
-            'invoices',
-            `comprobante-${order._id}.pdf`
-        );
+        logger.info(`processAfterOrder - Generando invoice para orden ${order._id}`);
+        const invoicePath = path.resolve(process.cwd(), 'invoices', `comprobante-${order._id}.pdf`);
         await generateInvoice(order, invoicePath);
+        logger.info(`processAfterOrder - Invoice generado: ${invoicePath}`);
 
-        const email = order.guestEmail || (order.user && order.user.email) || order.user?.email;
-        const name = order.guestName || (order.user && order.user.name) || 'Cliente';
+        const email = order.guestEmail;
+        const name = order.guestName || 'Cliente';
+        logger.info(`processAfterOrder - Enviando confirmation email. to=${email}`);
 
         if (email) {
-            await sendOrderConfirmationEmail(
-                email,
-                name,
-                order._id,
-                order.totalAmount,
-                invoicePath,
-                order
-            );
+            try {
+                await sendOrderConfirmationEmail(
+                    email,
+                    name,
+                    order._id,
+                    order.totalAmount,
+                    invoicePath,
+                    order
+                );
+                logger.info(`processAfterOrder - sendOrderConfirmationEmail OK para ${email}`);
+            } catch (err) {
+                logger.error(`processAfterOrder - Error enviando comprobante a ${email}: ${err.message}`);
+                throw err;
+            }
         } else {
-            logger.warn(`No se envió comprobante por email: no se encontró email para orden ${order._id}`);
+            logger.warn(`processAfterOrder - No se envió comprobante por email: no se encontró email para orden ${order._id}`);
         }
     } catch (error) {
+        logger.error(`processAfterOrder - Error en procesar la orden ${order._id}: ${error.message}`);
         throw new Error(`Error en procesar la orden: ${error.message}.`);
     }
 };

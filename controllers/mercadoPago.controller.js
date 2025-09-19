@@ -14,9 +14,15 @@ export const createPreferenceController = async (req, res) => {
 };
 
 export const webhookController = async (req, res) => {
+    logger.info(`/mercadopago/webhook - Request recibida. bodyKeys=${Object.keys(req.body)}, query=${JSON.stringify(req.query)}`);
+
+    logger.debug(`/mercadopago/webhook - Body completo: ${JSON.stringify(req.body)}`);
+
     const { type, data } = req.body;
     const { topic, id } = req.query;
+
     if (type && data) {
+        logger.info(`/mercadopago/webhook - Payload type/data. type=${type}, dataId=${data?.id}`);
         if (type !== 'payment') {
             logger.info(`POST /mercadopago/webhook - Tipo de evento ignorado: ${type}.`);
             return res.sendStatus(200);
@@ -26,17 +32,18 @@ export const webhookController = async (req, res) => {
             logger.info(`POST /mercadopago/webhook - Webhook procesado correctamente para payment ID: ${data.id}.`);
             return res.sendStatus(200);
         } catch (error) {
-            logger.error(`POST /mercadopago/webhook - Error al procesar webhook para payment ID ${data.id}: ${error.message}.`);
+            logger.error(`POST /mercadopago/webhook - Error al procesar webhook para payment ID ${data.id}: ${error.message}`);
             return res.sendStatus(500);
         }
     }
     if (topic === 'payment' && id) {
+        logger.info(`/mercadopago/webhook - Query params recibidos. topic=payment, id=${id}`);
         try {
             await processWebhook({ id });
             logger.info(`POST /mercadopago/webhook - Webhook procesado correctamente para payment ID: ${id} (desde query).`);
             return res.sendStatus(200);
         } catch (error) {
-            logger.error(`POST /mercadopago/webhook - Error al procesar webhook desde query para payment ID ${id}: ${error.message}.`);
+            logger.error(`POST /mercadopago/webhook - Error al procesar webhook desde query para payment ID ${id}: ${error.message}`);
             return res.sendStatus(500);
         }
     }

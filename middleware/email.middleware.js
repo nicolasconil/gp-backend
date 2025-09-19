@@ -19,14 +19,16 @@ export const sendEmail = async ({ to, subject, html, text = '', attachments = []
         text,
         attachments
     };
+    logger.info(`sendEmail - Enviando email a ${to}, subject="${subject}", attachments=${attachments.length}`);
     try {
         await transporter.sendMail(mailOptions);
-        logger.info(`Email enviado a ${to} - asunto: ${subject}`);
+        logger.info(`sendEmail - Email enviado a ${to} - asunto: ${subject}`);
     } catch (error) {
-        logger.error(`Error enviando email a ${to}: ${error.message}`, { error });
+        logger.error(`sendEmail - Error enviando email a ${to}: ${error.message}`, { error });
         throw new Error(`No se pudo enviar el email a ${to}. Error: ${error.message}`);
     }
 };
+
 
 export const sendUpdateStatusEmail = async (email, name, orderId, newStatus) => {
     const { subject, text, html } = updateStatusEmailTemplate(name, orderId, newStatus);
@@ -39,6 +41,7 @@ export const sendUpdateStatusEmail = async (email, name, orderId, newStatus) => 
 };
 
 export const sendOrderConfirmationEmail = async (email, name, orderId, total, pdfPath, cancelUrl, viewOrderUrl, order) => {
+    logger.info(`sendOrderConfirmationEmail - Preparando email confirmacion para ${email}, order=${orderId}, pdf=${pdfPath}`);
     const { subject, text, html } = orderConfirmationEmailTemplate(order);
     await sendEmail({
         to: email,
