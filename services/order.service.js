@@ -170,7 +170,9 @@ export const processAfterOrder = async (order) => {
                 order._id,
                 order.totalAmount,
                 invoicePath,
-                order
+                cancelUrl,
+                viewOrderUrl,
+                order,
             );
         }
     } catch (error) {
