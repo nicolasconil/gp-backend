@@ -16,7 +16,7 @@ export const createPreferenceController = async (req, res) => {
 export const webhookController = async (req, res) => {
     logger.info(`/mercadopago/webhook - Request recibida. bodyKeys=${Object.keys(req.body)}, query=${JSON.stringify(req.query)}`);
 
-    logger.debug(`/mercadopago/webhook - Body completo: ${JSON.stringify(req.body)}`);
+    logger.info(`/mercadopago/webhook - Body completo: ${JSON.stringify(req.body)}`);
 
     const { type, data } = req.body;
     const { topic, id } = req.query;

@@ -51,7 +51,7 @@ export const processWebhook = async (data) => {
     }
 
     const paymentData = paymentResponse?.body ? paymentResponse.body : paymentResponse;
-    logger.debug(`processWebhook - paymentData recibida: ${JSON.stringify(Object.keys(paymentData || {}))}`);
+    logger.info(`processWebhook - paymentData recibida: ${JSON.stringify(Object.keys(paymentData || {}))}`);
 
     const { status, id: transactionId, external_reference } = paymentData || {};
     logger.info(`processWebhook - status=${status}, transactionId=${transactionId}, external_reference=${external_reference}`);
