@@ -173,25 +173,20 @@ export const updateStock = async (req, res) => {
   try {
     const { id } = req.params;
     const { size, color, stock } = req.body;
-    if (!size || !color || stock == null) {
+    if (size == null || color == null || stock == null) {
       logger.warn(`PATCH /products/${id}/stock - Datos faltantes.`);
       return res.status(400).json({ message: "Faltan datos: size, color y stock son requeridos." });
     }
-    if (stock < 0) {
-      logger.warn(`PATCH /products/${id}/stock - Stock negativo no permitido.`);
-      return res.status(400).json({ message: "El stock no puede ser negativo." });
-    }
     const s = String(size);
     const c = String(color).trim();
-    if (movementType) {
-      await ProductService.updateStock(id, s, c, Number(stock), movementType);
-      logger.info(`PATCH /products/${id}/stock - Movimiento de stock ${movementType} aplicado.`);
-      return res.status(200).json({ message: 'Stock actualizado.' });
-    } else {
-      const updated = await ProductService.updateStock(id, s, c, Number(stock), 'set');
-      logger.info(`PATCH /products/${id}/stock - Stock establecido.`);
-      return res.status(200).json({ message: 'Stock establecido.' });
+    const nStock = Number(stock);
+    if (Number.isNaN(nStock) || nStock < 0) {
+      logger.warn(`PATCH /products/${id}/stock - Stock inválido.`);
+      return res.status(400).json({ message: "El stock debe ser un número >= 0." });
     }
+    const updated = await ProductService.updateStock(id, s, c, nStock);
+    logger.info(`PATCH /products/${id}/stock - Stock actualizado.`);
+    res.status(200).json(updated);
   } catch (error) {
     logger.error(`PATCH /products/${req.params.id}/stock - ${error.message}.`);
     res.status(400).json({ message: `Error al actualizar stock: ${error.message}.` });
