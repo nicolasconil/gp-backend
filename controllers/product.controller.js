@@ -13,12 +13,15 @@ export const getAll = async (req, res) => {
       gender: req.query.gender,
       brand: req.query.brand,
       catalog: req.query.catalog,
+      category: req.query.category,
+      size: req.query.size,
       minPrice: req.query.minPrice ? parseFloat(req.query.minPrice) : undefined,
       maxPrice: req.query.maxPrice ? parseFloat(req.query.maxPrice) : undefined,
       isActive:
         req.query.isActive !== undefined
           ? req.query.isActive === "true"
           : undefined,
+      available: req.query.available
     };
 
     const sortBy = req.query.sortBy || "price";
@@ -53,8 +56,11 @@ export const create = async (req, res) => {
   try {
     const {
       name, brand, price, description,
-      gender, isActive
+      gender, isActive, category
     } = req.body;
+    if (!category) {
+      return res.status(400).json({ message: "La categoría es obligatoria. Ej.: Indumentaria" })
+    }
     let { catalog } = req.body;
     catalog = catalog?.trim() || null;
     let variations = [];
@@ -79,11 +85,12 @@ export const create = async (req, res) => {
       price,
       description,
       gender,
+      category,
       catalog,
       isActive,
       variations,
-      images: imageUrls, 
-      image: imageUrls[0] || null, 
+      images: imageUrls,
+      image: imageUrls[0] || null,
     };
     const newProduct = await ProductService.create(productData);
     res.status(201).json(newProduct);
@@ -126,7 +133,8 @@ export const update = async (req, res) => {
       price: req.body.price,
       description: req.body.description,
       gender: req.body.gender,
-      variations: req.body.variations, 
+      category: req.body.category,
+      variations: req.body.variations,
       isActive: req.body.isActive,
       catalog: req.body.catalog,
     };
@@ -134,10 +142,10 @@ export const update = async (req, res) => {
     if (newImageUrls.length > 0) {
       finalImages = (imagesToKeep && Array.isArray(imagesToKeep))
         ? [...imagesToKeep, ...newImageUrls]
-        : [...newImageUrls]; 
+        : [...newImageUrls];
     } else if (imagesToKeep && Array.isArray(imagesToKeep)) {
       finalImages = [...imagesToKeep];
-    } 
+    }
     updates.images = finalImages;
     updates.image = finalImages[0] || null;
     const updated = await ProductService.update(id, updates);
@@ -173,9 +181,17 @@ export const updateStock = async (req, res) => {
       logger.warn(`PATCH /products/${id}/stock - Stock negativo no permitido.`);
       return res.status(400).json({ message: "El stock no puede ser negativo." });
     }
-    const updated = await ProductService.updateStock(id, size, color, stock);
-    logger.info(`PATCH /products/${id}/stock - Stock actualizado.`);
-    res.status(200).json(updated);
+    const s = String(size);
+    const c = String(color).trim();
+    if (movementType) {
+      await ProductService.updateStock(id, s, c, Number(stock), movementType);
+      logger.info(`PATCH /products/${id}/stock - Movimiento de stock ${movementType} aplicado.`);
+      return res.status(200).json({ message: 'Stock actualizado.' });
+    } else {
+      const updated = await ProductService.updateStock(id, s, c, Number(stock), 'set');
+      logger.info(`PATCH /products/${id}/stock - Stock establecido.`);
+      return res.status(200).json({ message: 'Stock establecido.' });
+    }
   } catch (error) {
     logger.error(`PATCH /products/${req.params.id}/stock - ${error.message}.`);
     res.status(400).json({ message: `Error al actualizar stock: ${error.message}.` });

@@ -2,14 +2,17 @@ import mongoose from "mongoose";
 
 const variationSchema = new mongoose.Schema({
     size: {
-        type: Number,
+        type: String,
+        required: true,
     },
     color: {
         type: String,
+        required: true
     },
     stock: {
         type: Number,
-        min: 0
+        min: 0,
+        default: 0,
     },
     stockMinimo: {
         type: Number,
@@ -46,6 +49,10 @@ const ProductSchema = new mongoose.Schema({
         type: String,
         enum: ['hombre', 'mujer', 'niños', 'unisex']
     },
+    category: {
+        type: String,
+        enum: ['indumentaria', 'calzado'],
+    },
     catalog: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Catalog',
@@ -64,6 +71,11 @@ const ProductSchema = new mongoose.Schema({
         default: Date.now
     }
 });
+
+ProductSchema.index({ category: 1 });
+ProductSchema.index({ 'variations.size': 1 });
+ProductSchema.index({ 'variations.color': 1 });
+ProductSchema.index({ name: 'text' });
 
 // virtual para stock total (suma de todas las variaciones)
 ProductSchema.virtual('stock').get(function () {

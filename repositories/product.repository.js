@@ -14,6 +14,9 @@ export const getAllProducts = async (filters = {}, sortBy = 'price', order = 1) 
     if (filters.catalog) {
         filterQuery.catalog = filters.catalog;
     }
+    if (filters.category) {
+        filterQuery.category = filters.category;
+    }
     if (filters.minPrice || filters.maxPrice) {
         filterQuery.price = {};
         if (filters.minPrice) {
@@ -25,6 +28,27 @@ export const getAllProducts = async (filters = {}, sortBy = 'price', order = 1) 
     }
     if (filters.isActive !== undefined) {
         filterQuery.isActive = filters.isActive;
+    }
+    if (filters.size) {
+        let sizes = filters.size;
+        if (typeof sizes === 'string') {
+            if (sizes.includes(',')) sizes = sizes.split(',').map(s => String(s).trim());
+            else sizes = [String(sizes).trim()];
+        }
+        if (Array.isArray(sizes) && sizes.length > 0) {
+            if (filters.available === 'true' || filters.available === true) {
+                filterQuery.variations = {
+                    $elemMatch: {
+                        size: { $in: sizes },
+                        stock: { $gt: 0 }
+                    }
+                };
+            } else {
+                filterQuery['variations.size'] = { $in: sizes };
+            }
+        }
+    } else if (filters.available === 'true' || filters.available === true) {
+        filterQuery['variations.stock'] = { $gt: 0 };
     }
     return await Product.find(filterQuery).sort({ [sortBy]: order });
 };
@@ -39,7 +63,7 @@ export const createProduct = async (data) => {
 };
 
 export const updateProduct = async (id, data) => {
-    return await Product.findByIdAndUpdate(id, data, { new: true });
+    return await Product.findByIdAndUpdate(id, data, { new: true, runValidators: true });
 };
 
 export const deleteProduct = async (id) => {

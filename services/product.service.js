@@ -1,7 +1,7 @@
 import * as ProductRepository from "../repositories/product.repository.js";
 
-export const getAll = async (filters = {}) => {
-    return await ProductRepository.getAllProducts(filters);
+export const getAll = async (filters = {}, sortBy = 'price', order = 1) => {
+    return await ProductRepository.getAllProducts(filters, sortBy, order);
 }
 
 export const getById = async (id) => {
@@ -32,8 +32,15 @@ export const create = async (data) => {
         if (variation.stock < 0) {
             throw new Error('El stock de una variación no puede ser negativo.');
         }
+        variation.size = String(variation.size);
+        variation.color = String(variation.color).trim();
     }
     data.name = data.name.trim().toLowerCase();
+    if (!data.category) {
+        const allNumeric = data.variations.every(v => /^\d+$/.test(String(v.size)));
+        const allAlpha = data.variations.every(v => /^[A-Za-z]+$/.test(String(v.size)));
+        data.category = allNumeric ? 'calzado' : (allAlpha ? 'indumentaria' : '');
+    }
     return await ProductRepository.createProduct(data);
 };
 
@@ -52,6 +59,8 @@ export const update = async (id, data) => {
             if (variation.stock < 0) {
                 throw new Error('El stock de una variación no puede ser negativo.');
             }
+            variation.size = String(variation.size);
+            variation.color = String(variation.color).trim();
         }
     }
     const product = await ProductRepository.updateProduct(id, data);
