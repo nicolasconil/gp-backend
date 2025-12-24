@@ -6,7 +6,7 @@ const StockMovementSchema = new mongoose.Schema({
         ref: 'Product',
     },
     size: {
-        type: Number,
+        type: String,
     },
     color: {
         type: String,

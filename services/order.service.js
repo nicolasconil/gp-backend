@@ -15,7 +15,6 @@ export const create = async (orderData) => {
         session.startTransaction();
         const cancelToken = crypto.randomBytes(24).toString('hex');
         orderData.cancelToken = cancelToken;
-
         const order = await OrderRepository.createOrder(orderData, session);
         if (!order || !order._id) {
             throw new Error('No se pudo crear la orden, la orden es inválida.');
@@ -24,17 +23,14 @@ export const create = async (orderData) => {
         order.shipping = shipping._id;
         await order.save({ session });
         for (const item of orderData.products) {
-            await StockMovementRepository.createStockMovement(
-                {
-                    product: item.product,
-                    size: item.size,
-                    color: item.color,
-                    quantity: Math.abs(item.quantity),
-                    movementType: 'venta',
-                    note: `Orden ${order._id} creada`,
-                    createdBy: orderData.user,
-                },
-                session
+            await StockMovementService.recordStockMovement(
+                item.product,
+                String(item.size).trim(),
+                String(item.color).trim().toLowerCase(),
+                Math.abs(Number(item.quantity)),
+                'venta',
+                orderData.user,
+                `Orden ${order._id} creada`
             );
         }
         await session.commitTransaction();

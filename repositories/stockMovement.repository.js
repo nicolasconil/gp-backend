@@ -1,15 +1,23 @@
 import StockMovement from "../models/stockMovement.model.js";
 import Product from "../models/product.model.js";
 
+const normalizeSize = (s) => (s === null || s === undefined) ? '' : String(s).trim();
+const normalizeColor = (c) => (c === null || c === undefined) ? '' : String(c).trim().toLowerCase();
+
 export const createStockMovement = async (data, session = null) => {
-    const { product: productId, size, color, quantity, movementType, note, createdBy } = data;
+    const { product: productId, size: rawSize, color: rawColor, quantity, movementType, note, createdBy } = data;
+    const size = normalizeSize(rawSize);
+    const color = normalizeColor(rawColor);
+
     const product = await Product.findById(productId).session(session);
     if (!product) throw new Error('Producto no encontrado.');
     const variation = product.variations.find(
-        (v) => v.size === size && v.color.toLowerCase() === color.toLowerCase()
+        (v) => String(v.size).trim().toLowerCase() === size.toLowerCase() &&
+               String(v.color || '').trim().toLowerCase() === color
     );
     if (!variation) throw new Error('Variación no encontrada.');
-    if (movementType === 'venta' && variation.stock < quantity) {
+
+    if (movementType === 'venta' && Number(variation.stock) < Number(quantity)) {
         throw new Error(
             `Stock insuficiente para la variación (size: ${size}, color: ${color}). Solicitado: ${quantity}, disponible: ${variation.stock}`
         );
@@ -19,8 +27,8 @@ export const createStockMovement = async (data, session = null) => {
             {
                 product: productId,
                 size,
-                color: color.toLowerCase(),
-                quantity: Math.abs(quantity),
+                color,
+                quantity: Math.abs(Number(quantity)),
                 movementType,
                 note,
                 createdBy,
@@ -28,23 +36,27 @@ export const createStockMovement = async (data, session = null) => {
         ],
         { session }
     );
-    const delta = movementType === 'ingreso' ? quantity : -quantity;
+    const delta = movementType === 'ingreso' ? Number(quantity) : -Number(quantity);
+    const filter = {
+        _id: productId,
+        variations: {
+            $elemMatch: {
+                size,
+                color,
+                ...(movementType === 'venta' ? { stock: { $gte: Number(quantity) } } : {})
+            }
+        }
+    };
     const result = await Product.updateOne(
-        { 
-            _id: productId, 
-            'variations.size': size, 
-            'variations.color': color,
-            ...(movementType  === 'venta' ? { 'variations.stock': { $gte: quantity } } : {})
-        },
+        filter,
         { $inc: { 'variations.$.stock': delta } },
         { session }
     );
-    if (result.modifiedCount === 0) {
-        throw new Error('No se pudo actualizar el stock del producto.');
+    if (result.modifiedCount === 0 && result.matchedCount === 0) {
+        throw new Error('No se pudo actualizar el stock del producto. Posible inconsistencia en formatos de size/color.');
     }
     return movement;
 };
-
 
 export const getStockMovementsByProduct = async (productId) => {
     return await StockMovement.find({ product: productId }).sort({ date: -1 });

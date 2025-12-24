@@ -1,5 +1,5 @@
 import * as StockMovementService from "../services/stockMovement.service.js";
-import logger from "../utils/logger.js"; 
+import logger from "../utils/logger.js";
 
 export const recordStockMovement = async (req, res) => {
     try {
@@ -21,8 +21,8 @@ export const recordStockMovement = async (req, res) => {
         }
         await StockMovementService.recordStockMovement(
             productId,
-            size,
-            color,
+            String(size).trim(),
+            String(color).trim().toLowerCase(),
             qty,
             movementType,
             null,
