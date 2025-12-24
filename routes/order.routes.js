@@ -11,6 +11,8 @@ router.post('/', guestOrderLimiter, csrfProtection, OrderController.createOrder)
 
 router.get('/', OrderController.getAllOrders);
 
+router.get('/public/:id', OrderController.getOrderById);
+
 // rutas sólo para moderadores y administrador
 router.use(AuthMiddleware.verifyToken);
 router.use(AuthMiddleware.verifyModerator);
