@@ -17,9 +17,9 @@ export const createPreference = async (order) => {
     const preference = {
         items,
         back_urls: {
-            success: `https://www.gpfootwear.com`,
-            failure: `https://www.gpfootwear.com`,
-            pending: `https://www.gpfootwear.com`,
+            success: `https://www.gpfootwear.com/order/success?orderId=${order._id}`,
+            failure: `https://www.gpfootwear.com/order/payment-failed?orderId=${order._id}`,
+            pending: `https://www.gpfootwear.com/order/pending?orderId=${order._id}`,
         },
         auto_return: 'approved',
         notification_url: `${process.env.BACKEND_URL}/api/mercadopago/webhook?source_news=webhooks`,
