@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 import * as OrderRepository from "../repositories/order.repository.js";
-import * as StockMovementRepository from "../repositories/stockMovement.repository.js";
+import * as StockMovementService from "../services/stockMovement.service.js";
 import * as ShippingService from "../services/shipping.service.js";
 import { generateInvoice } from "../utils/invoiceGenerator.js";
 import { sendOrderConfirmationEmail, sendShippingNotificationEmail, sendUpdateStatusEmail } from "../middleware/email.middleware.js";
